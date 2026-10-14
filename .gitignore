@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+flask_session/
+getfit.db
+.env
+venv/
+.venv/

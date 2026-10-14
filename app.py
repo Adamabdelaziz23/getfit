@@ -1,14 +1,12 @@
 import os
 from functools import wraps
-
+from cs50 import SQL
+from werkzeug.security import check_password_hash, generate_password_hash
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 
-# Example database setup if you want to add it later:
-# from cs50 import SQL
-# from werkzeug.security import check_password_hash, generate_password_hash
-# db = SQL("sqlite:///your_database.db")
 
+db = SQL("sqlite:///getfit.db")
 
 def login_required(f):
     """Protect routes that require an active user session."""
@@ -79,10 +77,11 @@ def login():
         - render login.html
     """
     if request.method == "POST":
-        # username = request.form.get("username")
-        # password = request.form.get("password")
-        # rows = db.execute("SELECT * FROM users WHERE username = ?", username)
-        # if valid user and password matches: session["user_id"] = rows[0]["id"]
+        username = request.form.get("username")
+        password = request.form.get("password")
+        rows = db.execute("SELECT * FROM users WHERE username = ?", username)
+        if len(rows) == 1 and check_password_hash(rows[0]["password_hash"], password):
+            session["user_id"] = rows[0]["id"]
         # return redirect("/")
         return redirect("/")
 
@@ -91,19 +90,16 @@ def login():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Register a user.
-
-    Pseudocode only for now:
-    - validate username and password
-    - hash the password
-    - insert into users table
-    - redirect to /login
-    """
+    #register a user.
     if request.method == "POST":
-        # username = request.form.get("username")
-        # password = request.form.get("password")
-        # confirmation = request.form.get("confirmation")
-        # db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", username, generate_password_hash(password))
+        username = request.form.get("username")
+        password = request.form.get("password")
+        confirmation = request.form.get("confirmation")
+        if password != confirmation:
+            return render_template("register.html", error="Passwords do not match.")
+        if not username or not password:
+            return render_template("register.html", error="Username and password are required.")
+        db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", username, generate_password_hash(password))
         return redirect("/login")
 
     return render_template("register.html")
