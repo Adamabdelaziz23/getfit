@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GetFit{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-dark text-light">
+
+    <header class="header-container py-3 px-4 border-bottom border-secondary position-relative">
+        <div class="d-flex align-items-center justify-content-between">
+            <button class="menu-btn btn btn-outline-warning fs-4 border-0" aria-label="Open menu">&#9776;</button>
+            <h1 class="m-0 text-warning fw-bold fs-2 text-center position-absolute start-50 translate-middle-x">GetFit</h1>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <nav class="dropdown-menu-custom position-absolute bg-dark border border-warning rounded p-2" id="dropdownmenu">
+            <a class="d-block text-light text-decoration-none py-2 px-3 hover-bg-warning rounded" href="{{ url_for('index') }}">Home</a>
+            <a class="d-block text-light text-decoration-none py-2 px-3 hover-bg-warning rounded" href="{{ url_for('nutrition') }}">Nutrition</a>
+            <a class="d-block text-light text-decoration-none py-2 px-3 hover-bg-warning rounded" href="{{ url_for('workouts') }}">Workouts</a>
+            <a class="d-block text-light text-decoration-none py-2 px-3 hover-bg-warning rounded" href="{{ url_for('profile') }}">Profile</a>
+        </nav>
+    </header>
+
+    <main class="container my-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="text-center py-4 border-top border-secondary text-secondary">
+        <p class="m-0">&copy; 2026 GetFit App. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="card bg-dark text-white border-warning p-4 mb-4 text-center">
+    <div class="mb-3">
+        <div class="rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center fw-bold fs-1" style="width: 80px; height: 80px;">
+            GF
+        </div>
+    </div>
+    <h3 class="text-warning mb-1" id="userName">Alex Johnson</h3>
+    <p class="text-muted mb-3">Member since October 2026</p>
+    <div class="row g-2 justify-content-center mb-3">
+        <div class="col-4 col-md-2">
+            <div class="p-2 border border-secondary rounded">
+                <small class="text-warning d-block">Weight</small>
+                <span class="fw-bold" id="userWeight">75 kg</span>
+            </div>
+        </div>
+        <div class="col-4 col-md-2">
+            <div class="p-2 border border-secondary rounded">
+                <small class="text-warning d-block">Height</small>
+                <span class="fw-bold" id="userHeight">178 cm</span>
+            </div>
+        </div>
+        <div class="col-4 col-md-2">
+            <div class="p-2 border border-secondary rounded">
+                <small class="text-warning d-block">Goal</small>
+                <span class="fw-bold text-warning" id="userGoal">Muscle Gain</span>
+            </div>
+        </div>
+    </div>
+    <button class="btn btn-outline-warning btn-sm mx-auto" style="max-width: 150px;" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</button>
+</div>
+
+<h3 class="text-warning mb-3">Personal Records (PRs)</h3>
+<div class="card bg-dark text-white border-secondary p-4 mb-4">
+    <form id="prForm" class="row g-3 mb-4">
+        <div class="col-md-5">
+            <select id="exerciseSelect" class="form-select bg-secondary text-white border-0">
+                <option value="bench">Bench Press</option>
+                <option value="squat">Squat</option>
+                <option value="deadlift">Deadlift</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="number" id="prWeightInput" class="form-control bg-secondary text-white border-0" placeholder="New Weight (kg)" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-warning w-100 fw-bold">Update PR</button>
+        </div>
+    </form>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary p-3 text-center">
+                <h5 class="text-warning">Bench Press</h5>
+                <p class="fs-3 fw-bold text-warning mb-0" id="benchPr">100 kg</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary p-3 text-center">
+                <h5 class="text-warning">Squat</h5>
+                <p class="fs-3 fw-bold text-warning mb-0" id="squatPr">140 kg</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary p-3 text-center">
+                <h5 class="text-warning">Deadlift</h5>
+                <p class="fs-3 fw-bold text-warning mb-0" id="deadliftPr">180 kg</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-warning">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning">Edit Profile Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="editName" class="form-control bg-secondary text-white border-0" value="Alex Johnson">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Weight (kg)</label>
+                        <input type="number" id="editWeight" class="form-control bg-secondary text-white border-0" value="75">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Height (cm)</label>
+                        <input type="number" id="editHeight" class="form-control bg-secondary text-white border-0" value="178">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fitness Goal</label>
+                        <input type="text" id="editGoal" class="form-control bg-secondary text-white border-0" value="Muscle Gain">
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold" data-bs-dismiss="modal">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

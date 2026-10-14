@@ -1,0 +1,44 @@
+-- 1. Enable Foreign Key support in SQLite (recommended for relational integrity)
+PRAGMA foreign_keys = ON;
+
+-- 2. Create the Users table
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    plan TEXT,
+    password_hash TEXT NOT NULL,
+    height INTEGER,
+    weight INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+);
+
+-- 3. Create the pr table
+CREATE TABLE pr (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    deadlift INTEGER,
+    squat INTEGER,
+    bench INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+-- 4.
+CREATE TABLE nutrion (
+    user_id INTEGER NOT NULL ,
+    calories INTEGER,
+    maintain INTEGER,
+    protien INTEGER,
+    carbs INTEGER,
+    fats INTEGER,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 5. Create the WORKOUT table
+  CREATE TABLE workout (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    workout_name TEXT NOT NULL,
+    details TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
