@@ -1,0 +1,55 @@
+==================================================
+PROJECT TITLE: [Get Fit]
+==================================================
+
+1. OVERVIEW & PURPOSE
+--------------------------------------------------
+- What problem does this solve?
+- Who is the user?
+- What will the core homepage look like?
+
+2. CORE FEATURES
+--------------------------------------------------
+- Feature 1: User Authentication (Register, Login, Logout)
+- Feature 2: Tracking each user data and keep it stored
+- Feature 3: calorie calculator
+- Feature 4: customizable
+- Feature 5:
+- Feature 6: soadno9@gmail.com
+
+3. DATABASE SCHEMA (SQL / SQLite)
+--------------------------------------------------
+Table 1: users
+- id (INTEGER, PRIMARY KEY, AUTOINCREMENT)
+- username (TEXT, NOT NULL)
+- hash (TEXT, NOT NULL)
+
+Table 2: [Your Main Entity, e.g., posts, items, transactions]
+- id (INTEGER, PRIMARY KEY, AUTOINCREMENT)
+- user_id (INTEGER, FOREIGN KEY referencing users(id))
+- title (TEXT, NOT NULL)
+- description (TEXT)
+- timestamp (DATETIME, DEFAULT CURRENT_TIMESTAMP)
+
+Table 3: [Optional Relational Table, e.g., categories or tags]
+- id (INTEGER, PRIMARY KEY, AUTOINCREMENT)
+- name (TEXT, NOT NULL)
+
+4. FLASK ROUTES PLAN
+--------------------------------------------------
+- GET /               -> Home page (displays summary or welcome)
+- GET/POST /login     -> User login
+- GET/POST /register  -> User registration
+- GET /logout         -> Clear session and redirect
+- GET/POST /add       -> Create a new entry
+- GET/POST /edit/<id> -> Modify an existing entry
+- POST /delete/<id>   -> Remove an entry
+
+5. MILESTONES & TO-DO
+--------------------------------------------------
+[ ] Step 1: Set up Flask boilerplate and database file.
+[ ] Step 2: Implement registration and login routes.
+[ ] Step 3: Build the main homepage layout and route.
+[ ] Step 4: Add create/read/update/delete (CRUD) logic.
+[ ] Step 5: Style with CSS (Bootstrap or custom) and test for bugs.
+[ ] Step 6: Write README.md and record video demo.

@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block title %}Workouts{% endblock %}
+{% block content %}
+<div class="card bg-dark text-white border-warning p-4 mb-4 text-center">
+    <h3 class="text-warning">Rest Timer</h3>
+    <div class="display-3 fw-bold my-2" id="timerDisplay">01:00</div>
+    <div>
+        <button class="btn btn-warning me-2" onclick="startTimer(30)">30s</button>
+        <button class="btn btn-warning me-2" onclick="startTimer(60)">60s</button>
+        <button class="btn btn-warning me-2" onclick="startTimer(90)">90s</button>
+        <button class="btn btn-outline-danger" onclick="resetTimer()">Reset</button>
+    </div>
+</div>
+
+<h3 class="text-warning text-center mb-4">Routine Splits</h3>
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-secondary h-100 p-3">
+            <h4 class="text-warning">Push Day</h4>
+            <p class="text-muted">Chest, Shoulders & Triceps</p>
+            <ul class="list-unstyled">
+                <li><strong>Bench Press:</strong> 4 sets × 8–10 reps</li>
+                <li><strong>Overhead Press:</strong> 3 sets × 8–10 reps</li>
+                <li><strong>Incline Dumbbell Press:</strong> 3 sets × 10–12 reps</li>
+                <li><strong>Tricep Rope Pushdowns:</strong> 3 sets × 12–15 reps</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-secondary h-100 p-3">
+            <h4 class="text-warning">Pull Day</h4>
+            <p class="text-muted">Back, Rear Delt & Biceps</p>
+            <ul class="list-unstyled">
+                <li><strong>Lat Pulldowns / Pull-ups:</strong> 4 sets × 8–10 reps</li>
+                <li><strong>Barbell Rows:</strong> 3 sets × 8–10 reps</li>
+                <li><strong>Face Pulls:</strong> 3 sets × 12–15 reps</li>
+                <li><strong>Barbell Bicep Curls:</strong> 3 sets × 10–12 reps</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-dark text-white border-secondary h-100 p-3">
+            <h4 class="text-warning">Leg Day</h4>
+            <p class="text-muted">Quadriceps, Hamstrings & Calves</p>
+            <ul class="list-unstyled">
+                <li><strong>Barbell Squats:</strong> 4 sets × 6–8 reps</li>
+                <li><strong>Romanian Deadlifts:</strong> 3 sets × 8–10 reps</li>
+                <li><strong>Leg Press:</strong> 3 sets × 10–12 reps</li>
+                <li><strong>Standing Calf Raises:</strong> 4 sets × 15 reps</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
