@@ -9,9 +9,9 @@ features, setup steps, and project status change.
 About
 -----
 GetFit is a Flask and SQLite fitness-tracking app. Users can register and log
-in, edit profile details, upload a profile picture, and record bench press,
-squat, and deadlift personal records. Nutrition and workout pages are present
-as placeholders.
+in, edit profile details, upload a profile picture, record bench press, squat,
+and deadlift personal records, and view or create weekly workout routines. The
+nutrition page is a placeholder.
 
 Current features
 ----------------
@@ -21,6 +21,10 @@ Current features
 - Profile picture uploads: choose a PNG, JPEG, or WebP (up to 5 MB) using the
     + button overlaid on the avatar; selection uploads automatically.
 - Personal records saved per user for bench press, squat, and deadlift.
+- Three 7-day preset programs (Push/Pull/Legs, Upper/Lower, and Full Body), each
+    showing high-intensity, high-volume, and average training options per day.
+- Custom weekly routines with seven days and three training-style detail fields
+    per day, saved per user.
 - SQLite database access through the CS50 SQL library.
 
 Technology
@@ -33,7 +37,7 @@ Technology
 
 Project files
 -------------
-- app.py: Flask routes, authentication, profile updates, PR updates, and image uploads.
+- app.py: Flask routes, authentication, profile updates, PR updates, workout routines, and image uploads.
 - sql.txt: Database schema for new databases and migration reminders for existing ones.
 - getfit.db: Local SQLite database. Do not commit it if it contains real user data.
 - templates/: Jinja templates for the application pages.
@@ -59,11 +63,13 @@ the app.
 
 Database updates
 ----------------
-The users table now includes name, fitness_goal, and profile_picture columns.
+The users table includes name, fitness_goal, and profile_picture columns.
 sql.txt contains commented ALTER TABLE statements for older databases. After
 merging schema changes, run each required statement once against an existing
 database that does not already have that column. Do not run an ALTER statement
 again if the column is already present. The local getfit.db has been migrated.
+Custom weekly routine details are stored as JSON in the existing workout.details
+column, so the routine editor does not require another schema migration.
 
 Do not commit getfit.db when it contains personal account data. Keep database
 schema and migration instructions in source control instead.

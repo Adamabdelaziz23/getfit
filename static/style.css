@@ -139,3 +139,53 @@ h1 {
     outline-offset: 2px;
 }
 
+/* AI assistance: GitHub Copilot helped style the weekly routine tables. */
+.routine-toggle {
+    min-height: 72px;
+}
+
+.routine-table-wrap {
+    border: 1px solid rgba(212, 175, 55, 0.45);
+}
+
+.weekly-routine-table {
+    min-width: 1540px;
+    table-layout: fixed;
+}
+
+.weekly-routine-table th,
+.weekly-routine-table td {
+    width: 14.285%;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.weekly-routine-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    color: #d4af37;
+    text-align: center;
+}
+
+.routine-exercises,
+.routine-variant p {
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+.routine-exercises {
+    padding-left: 1rem;
+}
+
+.routine-variant {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.routine-variant h6 {
+    color: #d4af37;
+    font-size: 0.8rem;
+}
+

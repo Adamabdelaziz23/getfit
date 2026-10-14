@@ -12,44 +12,114 @@
     </div>
 </div>
 
-<h3 class="text-warning text-center mb-4">Routine Splits</h3>
-<div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
-            <h4 class="text-warning">Push Day</h4>
-            <p class="text-muted">Chest, Shoulders & Triceps</p>
-            <ul class="list-unstyled">
-                <li><strong>Bench Press:</strong> 4 sets × 8–10 reps</li>
-                <li><strong>Overhead Press:</strong> 3 sets × 8–10 reps</li>
-                <li><strong>Incline Dumbbell Press:</strong> 3 sets × 10–12 reps</li>
-                <li><strong>Tricep Rope Pushdowns:</strong> 3 sets × 12–15 reps</li>
-            </ul>
+{% macro routine_panel(routine, styles) %}
+<section class="routine-panel mb-3">
+    <button class="btn btn-dark border border-warning text-start w-100 p-3 routine-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#routine-panel-{{ routine.id }}" aria-expanded="false" aria-controls="routine-panel-{{ routine.id }}">
+        <span class="d-block text-warning fs-5 fw-bold">{{ routine.name }}</span>
+        {% if routine.description %}<span class="d-block text-light small mt-1">{{ routine.description }}</span>{% endif %}
+    </button>
+    <div class="collapse" id="routine-panel-{{ routine.id }}">
+        <div class="table-responsive routine-table-wrap mt-2">
+            <table class="table table-dark table-bordered align-middle mb-0 weekly-routine-table">
+                <thead>
+                    <tr>
+                        {% for day in routine.days %}<th scope="col">{{ day.name }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for day in routine.days %}
+                        <td>
+                            {% if routine.is_custom %}
+                                {% for style in styles %}
+                                <section class="routine-variant">
+                                    <h6>{{ style.label }}</h6>
+                                    {% if day.variants[style.key] %}
+                                        <p class="mb-0">{{ day.variants[style.key] }}</p>
+                                    {% else %}
+                                        <p class="text-secondary mb-0">No details added</p>
+                                    {% endif %}
+                                </section>
+                                {% endfor %}
+                            {% else %}
+                                <h6 class="text-warning">{{ day.focus }}</h6>
+                                <ul class="routine-exercises">
+                                    {% for exercise in day.exercises %}<li>{{ exercise }}</li>{% endfor %}
+                                </ul>
+                                {% for style in styles %}
+                                <section class="routine-variant">
+                                    <h6>{{ style.label }}</h6>
+                                    <p class="mb-0">{% if day.rest %}Recovery day; no lifting prescribed.{% else %}{{ style.guidance }}{% endif %}</p>
+                                </section>
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+</section>
+{% endmacro %}
 
-    <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
-            <h4 class="text-warning">Pull Day</h4>
-            <p class="text-muted">Back, Rear Delt & Biceps</p>
-            <ul class="list-unstyled">
-                <li><strong>Lat Pulldowns / Pull-ups:</strong> 4 sets × 8–10 reps</li>
-                <li><strong>Barbell Rows:</strong> 3 sets × 8–10 reps</li>
-                <li><strong>Face Pulls:</strong> 3 sets × 12–15 reps</li>
-                <li><strong>Barbell Bicep Curls:</strong> 3 sets × 10–12 reps</li>
-            </ul>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-warning" role="alert">
+            {% for message in messages %}<div>{{ message }}</div>{% endfor %}
         </div>
-    </div>
+    {% endif %}
+{% endwith %}
 
-    <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
-            <h4 class="text-warning">Leg Day</h4>
-            <p class="text-muted">Quadriceps, Hamstrings & Calves</p>
-            <ul class="list-unstyled">
-                <li><strong>Barbell Squats:</strong> 4 sets × 6–8 reps</li>
-                <li><strong>Romanian Deadlifts:</strong> 3 sets × 8–10 reps</li>
-                <li><strong>Leg Press:</strong> 3 sets × 10–12 reps</li>
-                <li><strong>Standing Calf Raises:</strong> 4 sets × 15 reps</li>
-            </ul>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h3 class="text-warning mb-0">Weekly Routines</h3>
+    <button type="button" class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#addRoutineModal">+ Add Routine</button>
+</div>
+<p class="small text-secondary mb-3">Percentages are starting guides. Use controlled form and choose a load that suits your ability.</p>
+
+<!-- AI assistance: GitHub Copilot helped implement expandable weekly routine tables. -->
+{% for routine in preset_routines %}{{ routine_panel(routine, routine_styles) }}{% endfor %}
+{% for routine in custom_routines %}{{ routine_panel(routine, routine_styles) }}{% endfor %}
+
+<div class="modal fade" id="addRoutineModal" tabindex="-1" aria-labelledby="addRoutineTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-white border-warning">
+            <form method="post" action="{{ url_for('workouts') }}">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-warning" id="addRoutineTitle">Create Weekly Routine</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="routineName" class="form-label">Routine name</label>
+                        <input type="text" id="routineName" name="routine_name" class="form-control bg-secondary text-white border-0" maxlength="80" required>
+                    </div>
+                    <p class="small text-secondary">Add exercises, sets, reps, or load notes for each day and style. Leave rest-day options empty.</p>
+                    <div class="accordion" id="customRoutineDays">
+                        {% for day in week_days %}
+                        <div class="accordion-item bg-dark text-white border-secondary">
+                            <h2 class="accordion-header" id="heading-{{ day.key }}">
+                                <button class="accordion-button collapsed bg-secondary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#custom-day-{{ day.key }}" aria-expanded="false" aria-controls="custom-day-{{ day.key }}">{{ day.name }}</button>
+                            </h2>
+                            <div id="custom-day-{{ day.key }}" class="accordion-collapse collapse" aria-labelledby="heading-{{ day.key }}" data-bs-parent="#customRoutineDays">
+                                <div class="accordion-body">
+                                    {% for style in routine_styles %}
+                                    <div class="mb-3">
+                                        <label for="{{ day.key }}-{{ style.key }}" class="form-label">{{ style.label }}</label>
+                                        <textarea id="{{ day.key }}-{{ style.key }}" name="{{ day.key }}_{{ style.key }}" class="form-control bg-secondary text-white border-0" rows="2" maxlength="1000" placeholder="{{ style.guidance }}"></textarea>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Save Routine</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

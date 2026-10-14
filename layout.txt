@@ -53,3 +53,22 @@ Table 3: [Optional Relational Table, e.g., categories or tags]
 [ ] Step 4: Add create/read/update/delete (CRUD) logic.
 [ ] Step 5: Style with CSS (Bootstrap or custom) and test for bugs.
 [ ] Step 6: Write README.md and record video demo.
+ features to be added :
+
+ 1. Progress Charts & Analytics
+Weight Tracking Graph: A line chart showing your weight changes over time to match your muscle-gain goal.
+
+PR History Graph: A visual timeline or trend line for your Bench Press, Squat, and Deadlift records so you can see your strength increases month-over-month.
+
+2. Activity & Workout Stats
+Workout Streak: A counter or calendar heatmap showing your active workout days (similar to GitHub contribution grids) to keep you motivated.
+
+Recent Workouts / Activity Feed: A list of your latest completed routines, exercises performed, or volume lifted during your last gym session.
+
+3. Body Measurements & Composition
+Body Metrics Breakdown: Expand beyond basic height and weight by adding fields for body fat percentage, or specific measurements like chest, arms, thighs, and waist.
+
+Progress Photos Gallery: A side-by-side or grid layout for before-and-after physique photos linked to specific dates.
+
+4. Nutrition & Goals Widget
+Macro / Calorie Targets: Since your goal is muscle gain, a clean card displaying daily calorie, protein, carbohydrate, and fat targets would fit nicely.
