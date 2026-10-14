@@ -1,14 +1,21 @@
 -- 1. Enable Foreign Key support in SQLite (recommended for relational integrity)
 PRAGMA foreign_keys = ON;
 
+-- Existing databases: after merging, run these once if the columns are missing.
+-- Do not run them on databases that already have these columns.
+-- ALTER TABLE users ADD COLUMN name TEXT;
+-- ALTER TABLE users ADD COLUMN fitness_goal TEXT;
+
 -- 2. Create the Users table
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
+    name TEXT,
     plan TEXT,
     password_hash TEXT NOT NULL,
     height INTEGER,
     weight INTEGER,
+    fitness_goal TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 
 );

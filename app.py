@@ -55,27 +55,58 @@ def workouts():
     return render_template("work.html")
 
 
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    """Profile page placeholder."""
-    return render_template("prof.html")
+    user_id = session.get("user_id")
+    if request.method == "POST":
+        name = request.form.get("name")
+        weight = request.form.get("weight")
+        height = request.form.get("height")
+        fitness_goal = request.form.get("fitness_goal")
+        db.execute(
+            "UPDATE users SET name = ?, weight = ?, height = ?, fitness_goal = ? WHERE id = ?",
+            name,
+            weight,
+            height,
+            fitness_goal,
+            user_id,
+        )
+        return redirect("/profile")
+    user = db.execute("SELECT * FROM users WHERE id = ?", user_id)
+    records = db.execute("SELECT * FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
+    prs = records[0] if records else {"bench": None, "squat": None, "deadlift": None}
+    return render_template("prof.html", user=user[0], prs=prs)
+
+
+@app.route("/profile/pr", methods=["POST"])
+@login_required
+def update_pr():
+    user_id = session.get("user_id")
+    exercise = request.form.get("exercise")
+    weight = request.form.get("weight", type=int)
+    if exercise not in {"bench", "squat", "deadlift"} or weight is None or weight <= 0:
+        return redirect("/profile")
+
+    records = db.execute("SELECT id FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
+    if records:
+        db.execute(f"UPDATE pr SET {exercise} = ? WHERE id = ?", weight, records[0]["id"])
+    else:
+        values = {"bench": None, "squat": None, "deadlift": None}
+        values[exercise] = weight
+        db.execute(
+            "INSERT INTO pr (user_id, bench, squat, deadlift) VALUES (?, ?, ?, ?)",
+            user_id,
+            values["bench"],
+            values["squat"],
+            values["deadlift"],
+        )
+    return redirect("/profile")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Log the user in.
-
-    Pseudocode:
-    - if POST:
-        - get username and password from request.form
-        - query the database for that user
-        - check password hash
-        - if valid: session["user_id"] = user_id
-        - redirect to /
-    - else:
-        - render login.html
-    """
+    #login a user.
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")

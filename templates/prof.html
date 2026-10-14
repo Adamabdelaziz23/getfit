@@ -7,25 +7,25 @@
             GF
         </div>
     </div>
-    <h3 class="text-warning mb-1" id="userName">Alex Johnson</h3>
+    <h3 class="text-warning mb-1" id="userName">{{ user.name or user.username }}</h3>
     <p class="text-muted mb-3">Member since October 2026</p>
     <div class="row g-2 justify-content-center mb-3">
         <div class="col-4 col-md-2">
             <div class="p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Weight</small>
-                <span class="fw-bold" id="userWeight">75 kg</span>
+                <span class="fw-bold" id="userWeight">{{ user.weight if user.weight is not none else "Not set" }}{% if user.weight is not none %} kg{% endif %}</span>
             </div>
         </div>
         <div class="col-4 col-md-2">
             <div class="p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Height</small>
-                <span class="fw-bold" id="userHeight">178 cm</span>
+                <span class="fw-bold" id="userHeight">{{ user.height if user.height is not none else "Not set" }}{% if user.height is not none %} cm{% endif %}</span>
             </div>
         </div>
         <div class="col-4 col-md-2">
             <div class="p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Goal</small>
-                <span class="fw-bold text-warning" id="userGoal">Muscle Gain</span>
+                <span class="fw-bold text-warning" id="userGoal">{{ user.fitness_goal or "Not set" }}</span>
             </div>
         </div>
     </div>
@@ -34,16 +34,16 @@
 
 <h3 class="text-warning mb-3">Personal Records (PRs)</h3>
 <div class="card bg-dark text-white border-secondary p-4 mb-4">
-    <form id="prForm" class="row g-3 mb-4">
+    <form id="prForm" class="row g-3 mb-4" method="post" action="{{ url_for('update_pr') }}">
         <div class="col-md-5">
-            <select id="exerciseSelect" class="form-select bg-secondary text-white border-0">
+            <select id="exerciseSelect" name="exercise" class="form-select bg-secondary text-white border-0">
                 <option value="bench">Bench Press</option>
                 <option value="squat">Squat</option>
                 <option value="deadlift">Deadlift</option>
             </select>
         </div>
         <div class="col-md-4">
-            <input type="number" id="prWeightInput" class="form-control bg-secondary text-white border-0" placeholder="New Weight (kg)" required>
+            <input type="number" id="prWeightInput" name="weight" min="1" step="1" class="form-control bg-secondary text-white border-0" placeholder="New Weight (kg)" required>
         </div>
         <div class="col-md-3">
             <button type="submit" class="btn btn-warning w-100 fw-bold">Update PR</button>
@@ -54,19 +54,19 @@
         <div class="col-md-4">
             <div class="card bg-dark text-white border-secondary p-3 text-center">
                 <h5 class="text-warning">Bench Press</h5>
-                <p class="fs-3 fw-bold text-warning mb-0" id="benchPr">100 kg</p>
+                <p class="fs-3 fw-bold text-warning mb-0" id="benchPr">{{ prs.bench if prs.bench is not none else "Not set" }}{% if prs.bench is not none %} kg{% endif %}</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card bg-dark text-white border-secondary p-3 text-center">
                 <h5 class="text-warning">Squat</h5>
-                <p class="fs-3 fw-bold text-warning mb-0" id="squatPr">140 kg</p>
+                <p class="fs-3 fw-bold text-warning mb-0" id="squatPr">{{ prs.squat if prs.squat is not none else "Not set" }}{% if prs.squat is not none %} kg{% endif %}</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card bg-dark text-white border-secondary p-3 text-center">
                 <h5 class="text-warning">Deadlift</h5>
-                <p class="fs-3 fw-bold text-warning mb-0" id="deadliftPr">180 kg</p>
+                <p class="fs-3 fw-bold text-warning mb-0" id="deadliftPr">{{ prs.deadlift if prs.deadlift is not none else "Not set" }}{% if prs.deadlift is not none %} kg{% endif %}</p>
             </div>
         </div>
     </div>
@@ -80,24 +80,24 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="editProfileForm">
+                <form id="editProfileForm" method="post" action="{{ url_for('profile') }}">
                     <div class="mb-3">
                         <label class="form-label">Full Name</label>
-                        <input type="text" id="editName" class="form-control bg-secondary text-white border-0" value="Alex Johnson">
+                        <input type="text" id="editName" class="form-control bg-secondary text-white border-0" value="{{ user.name or user.username }}" name="name">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Weight (kg)</label>
-                        <input type="number" id="editWeight" class="form-control bg-secondary text-white border-0" value="75">
+                        <input type="number" id="editWeight" class="form-control bg-secondary text-white border-0" value="{{user.weight}}" name="weight">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Height (cm)</label>
-                        <input type="number" id="editHeight" class="form-control bg-secondary text-white border-0" value="178">
+                        <input type="number" id="editHeight" class="form-control bg-secondary text-white border-0" value="{{user.height}}" name="height">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Fitness Goal</label>
-                        <input type="text" id="editGoal" class="form-control bg-secondary text-white border-0" value="Muscle Gain">
+                        <input type="text" id="editGoal" class="form-control bg-secondary text-white border-0" value="{{user.fitness_goal}}" name="fitness_goal">
                     </div>
-                    <button type="submit" class="btn btn-warning w-100 fw-bold" data-bs-dismiss="modal">Save Changes</button>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">Save Changes</button>
                 </form>
             </div>
         </div>

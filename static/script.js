@@ -79,44 +79,4 @@ function updateTimerDisplay(seconds) {
     const secs = seconds % 60;
     display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
-// Update Personal Records (PRs)
-const prForm = document.getElementById('prForm');
-if (prForm) {
-    prForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const exercise = document.getElementById('exerciseSelect').value;
-        const weight = document.getElementById('prWeightInput').value;
-        if (exercise === 'bench') document.getElementById('benchPr').innerText =
-            `${weight} kg`;
-        if (exercise === 'squat') document.getElementById('squatPr').innerText =
-            `${weight} kg`;
-        if (exercise === 'deadlift') document.getElementById('deadliftPr').innerText =
-            `${weight} kg`;
-        document.getElementById('prWeightInput').value = '';
-    });
-}
 
-// Edit Profile Details
-const editProfileForm = document.getElementById('editProfileForm');
-if (editProfileForm) {
-    editProfileForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        // Update user stats on page
-        document.getElementById('userName').innerText = document.getElementById('editName')
-            .value;
-        document.getElementById('userWeight').innerText =
-            `${document.getElementById('editWeight').value} kg`;
-        document.getElementById('userHeight').innerText =
-            `${document.getElementById('editHeight').value} cm`;
-        document.getElementById('userGoal').innerText = document.getElementById('editGoal')
-            .value;
-
-        // Hide the Bootstrap modal automatically
-        const modalElement = document.getElementById('editProfileModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (modalInstance) {
-            modalInstance.hide();
-        }
-    });
-}
