@@ -80,6 +80,24 @@ function updateTimerDisplay(seconds) {
     display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
+// AI assistance: GitHub Copilot helped add custom rest-timer duration controls.
+const customTimerForm = document.getElementById('customTimerForm');
+if (customTimerForm) {
+    customTimerForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const minutes = Number(document.getElementById('timerMinutes').value);
+        const seconds = Number(document.getElementById('timerSeconds').value);
+        const duration = minutes * 60 + seconds;
+
+        if (!Number.isInteger(minutes) || minutes < 0 || minutes > 180 ||
+            !Number.isInteger(seconds) || seconds < 0 || seconds > 59 || duration === 0) {
+            return;
+        }
+
+        startTimer(duration);
+    });
+}
+
 // AI assistance: GitHub Copilot helped implement upload after picture selection.
 const profilePictureForm = document.getElementById('profilePictureForm');
 const profilePictureInput = document.getElementById('profilePictureInput');

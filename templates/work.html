@@ -10,6 +10,19 @@
         <button class="btn btn-warning me-2" onclick="startTimer(90)">90s</button>
         <button class="btn btn-outline-danger" onclick="resetTimer()">Reset</button>
     </div>
+    <form id="customTimerForm" class="row g-2 justify-content-center align-items-end mt-3">
+        <div class="col-5 col-sm-3 text-start">
+            <label for="timerMinutes" class="form-label small">Minutes</label>
+            <input type="number" id="timerMinutes" class="form-control bg-secondary text-white border-0" min="0" max="180" value="1" required>
+        </div>
+        <div class="col-5 col-sm-3 text-start">
+            <label for="timerSeconds" class="form-label small">Seconds</label>
+            <input type="number" id="timerSeconds" class="form-control bg-secondary text-white border-0" min="0" max="59" value="0" required>
+        </div>
+        <div class="col-12 col-sm-auto">
+            <button type="submit" class="btn btn-outline-warning w-100">Start Custom</button>
+        </div>
+    </form>
 </div>
 
 {% macro routine_panel(routine, styles) %}

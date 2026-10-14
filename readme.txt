@@ -21,6 +21,7 @@ Current features
 - Profile picture uploads: choose a PNG, JPEG, or WebP (up to 5 MB) using the
     + button overlaid on the avatar; selection uploads automatically.
 - Personal records saved per user for bench press, squat, and deadlift.
+- Workout rest timer supports preset durations and custom minutes/seconds.
 - Nutrition targets update from the existing calorie calculator using 15% cut,
   maintenance, and 10% bulk targets. Protein is 1.6 g/kg; remaining calories
   use a 4:3 carb-to-fat split with 4/4/9 kcal/g conversions.
