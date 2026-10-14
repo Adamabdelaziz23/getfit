@@ -97,3 +97,50 @@ if (profilePictureForm && profilePictureInput && chooseProfilePicture) {
     });
 }
 
+// AI assistance: GitHub Copilot helped connect calculator output to nutrition targets.
+const nutritionCalculatorForm = document.getElementById('calcForm');
+if (nutritionCalculatorForm) {
+    const calculatorOutput = document.getElementById('calcResult');
+
+    function updateNutritionTargets() {
+        const result = calculatorOutput.textContent.match(/([\d,]+)\s*kcal\/day/i);
+        if (!result) return;
+
+        const maintenance = Number(result[1].replace(/,/g, ''));
+        const bodyWeightKg = Number(document.getElementById('weight').value);
+        if (!Number.isFinite(bodyWeightKg) || bodyWeightKg <= 0) return;
+
+        const plans = [
+            { key: 'cut', calories: Math.round(maintenance * 0.85) },
+            { key: 'planMaintenance', calories: maintenance },
+            { key: 'bulk', calories: Math.round(maintenance * 1.10) }
+        ];
+
+        plans.forEach(function(plan) {
+            const protein = Math.round(bodyWeightKg * 1.6);
+            const remainingCalories = Math.max(plan.calories - protein * 4, 0);
+            const carbs = Math.round(remainingCalories / 7);
+            const fats = Math.round(remainingCalories / 21);
+
+            document.getElementById(`${plan.key}Calories`).textContent =
+                plan.calories.toLocaleString();
+            document.getElementById(`${plan.key}Protein`).textContent = protein;
+            document.getElementById(`${plan.key}Carbs`).textContent = carbs;
+            document.getElementById(`${plan.key}Fats`).textContent = fats;
+        });
+
+        document.getElementById('maintenanceCalories').textContent =
+            document.getElementById('planMaintenanceCalories').textContent;
+        document.getElementById('maintenanceProtein').textContent =
+            document.getElementById('planMaintenanceProtein').textContent;
+        document.getElementById('maintenanceCarbs').textContent =
+            document.getElementById('planMaintenanceCarbs').textContent;
+        document.getElementById('maintenanceFats').textContent =
+            document.getElementById('planMaintenanceFats').textContent;
+    }
+
+    nutritionCalculatorForm.addEventListener('submit', function() {
+        window.setTimeout(updateNutritionTargets, 0);
+    });
+}
+

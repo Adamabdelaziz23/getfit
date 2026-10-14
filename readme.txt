@@ -10,8 +10,8 @@ About
 -----
 GetFit is a Flask and SQLite fitness-tracking app. Users can register and log
 in, edit profile details, upload a profile picture, record bench press, squat,
-and deadlift personal records, and view or create weekly workout routines. The
-nutrition page is a placeholder.
+and deadlift personal records, view or create weekly workout routines, and
+calculate nutrition targets from estimated maintenance calories.
 
 Current features
 ----------------
@@ -21,6 +21,9 @@ Current features
 - Profile picture uploads: choose a PNG, JPEG, or WebP (up to 5 MB) using the
     + button overlaid on the avatar; selection uploads automatically.
 - Personal records saved per user for bench press, squat, and deadlift.
+- Nutrition targets update from the existing calorie calculator using 15% cut,
+  maintenance, and 10% bulk targets. Protein is 1.6 g/kg; remaining calories
+  use a 4:3 carb-to-fat split with 4/4/9 kcal/g conversions.
 - Three 7-day preset programs (Push/Pull/Legs, Upper/Lower, and Full Body), each
     showing high-intensity, high-volume, and average training options per day.
 - Custom weekly routines with seven days and three training-style detail fields
