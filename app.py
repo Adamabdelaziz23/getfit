@@ -1,8 +1,10 @@
 import os
 from functools import wraps
+from uuid import uuid4
 from cs50 import SQL
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask import Flask, redirect, render_template, request, session
+from werkzeug.utils import secure_filename
+from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 
 
@@ -22,6 +24,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+app.config["PROFILE_UPLOAD_FOLDER"] = os.path.join(app.static_folder, "uploads")
+os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
 Session(app)
 
 
@@ -101,6 +106,47 @@ def update_pr():
             values["squat"],
             values["deadlift"],
         )
+    return redirect("/profile")
+
+
+@app.route("/profile/picture", methods=["POST"])
+@login_required
+def upload_profile_picture():
+    upload = request.files.get("profile_picture")
+    if not upload or not upload.filename:
+        flash("Choose a profile picture to upload.")
+        return redirect("/profile")
+
+    extension = os.path.splitext(secure_filename(upload.filename))[1].lower()
+    if extension not in {".png", ".jpg", ".jpeg", ".webp"}:
+        flash("Upload a PNG, JPEG, or WebP image.")
+        return redirect("/profile")
+
+    header = upload.stream.read(12)
+    upload.stream.seek(0)
+    if extension == ".png":
+        valid_image = header.startswith(b"\x89PNG\r\n\x1a\n")
+    elif extension in {".jpg", ".jpeg"}:
+        valid_image = header.startswith(b"\xff\xd8\xff")
+    else:
+        valid_image = header[:4] == b"RIFF" and header[8:12] == b"WEBP"
+    if not valid_image:
+        flash("That file does not appear to be a valid image.")
+        return redirect("/profile")
+
+    filename = f"{uuid4().hex}{extension}"
+    upload.save(os.path.join(app.config["PROFILE_UPLOAD_FOLDER"], filename))
+
+    user_id = session.get("user_id")
+    user = db.execute("SELECT profile_picture FROM users WHERE id = ?", user_id)[0]
+    db.execute("UPDATE users SET profile_picture = ? WHERE id = ?", filename, user_id)
+    old_picture = user["profile_picture"]
+    if old_picture and os.path.basename(old_picture) == old_picture:
+        old_path = os.path.join(app.config["PROFILE_UPLOAD_FOLDER"], old_picture)
+        if os.path.isfile(old_path):
+            os.remove(old_path)
+
+    flash("Profile picture updated.")
     return redirect("/profile")
 
 
