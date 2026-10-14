@@ -84,6 +84,7 @@ def profile():
     return render_template("prof.html", user=user[0], prs=prs)
 
 
+# AI assistance: GitHub Copilot helped implement profile, PR, and picture-upload routes.
 @app.route("/profile/pr", methods=["POST"])
 @login_required
 def update_pr():

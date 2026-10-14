@@ -80,3 +80,20 @@ function updateTimerDisplay(seconds) {
     display.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
+// AI assistance: GitHub Copilot helped implement upload after picture selection.
+const profilePictureForm = document.getElementById('profilePictureForm');
+const profilePictureInput = document.getElementById('profilePictureInput');
+const chooseProfilePicture = document.getElementById('chooseProfilePicture');
+
+if (profilePictureForm && profilePictureInput && chooseProfilePicture) {
+    chooseProfilePicture.addEventListener('click', function() {
+        profilePictureInput.click();
+    });
+
+    profilePictureInput.addEventListener('change', function() {
+        if (profilePictureInput.files.length > 0) {
+            profilePictureForm.requestSubmit();
+        }
+    });
+}
+

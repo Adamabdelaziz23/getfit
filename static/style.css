@@ -101,3 +101,41 @@ h1 {
     position: relative;
 }
 
+/* AI assistance: GitHub Copilot helped style the profile picture picker. */
+.profile-picture-uploader {
+    position: relative;
+    display: inline-block;
+    width: 96px;
+    height: 96px;
+}
+
+.profile-avatar,
+.profile-avatar-image {
+    width: 96px;
+    height: 96px;
+}
+
+.profile-avatar-image {
+    object-fit: cover;
+}
+
+.profile-picture-edit {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid #fff;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.profile-picture-edit:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+

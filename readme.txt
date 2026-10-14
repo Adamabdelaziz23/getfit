@@ -18,7 +18,8 @@ Current features
 - User registration and login with hashed passwords.
 - Session-protected home, nutrition, workout, and profile pages.
 - Profile editing for name, height, weight, and fitness goal.
-- Profile picture uploads: PNG, JPEG, or WebP, up to 5 MB.
+- Profile picture uploads: choose a PNG, JPEG, or WebP (up to 5 MB) using the
+    + button overlaid on the avatar; selection uploads automatically.
 - Personal records saved per user for bench press, squat, and deadlift.
 - SQLite database access through the CS50 SQL library.
 
@@ -71,7 +72,8 @@ Uploads
 -------
 Profile pictures are stored in static/uploads with generated filenames. The
 database stores each user's current filename. Uploaded user images are local
-runtime data and should not normally be committed.
+runtime data and should not normally be committed. Use the button embedded in
+the avatar to select and upload a replacement picture.
 
 Development history
 -------------------
@@ -90,3 +92,4 @@ Maintenance
 -----------
 After each feature or setup change, update this README prototype so it reflects
 the current app. This can later be used to write README.md.
+
