@@ -35,7 +35,8 @@ Features
 - Progress dashboard: Brings weight and strength trends, workout activity,
   body measurements, a photo comparison, and nutrition goals into one view.
   It shows saved personal records, detailed session activity, a 30-day weight
-  graph, daily nutrition, body measurements, and saved progress photos.
+  graph, daily nutrition, body measurements, and saved progress photos. Set
+  the daily calorie target directly from the Nutrition & goals dashboard card.
 
 Technology and files
 --------------------

@@ -447,6 +447,43 @@ def dashboard():
     )
 
 
+@app.route("/calorie-target", methods=["POST"])
+@login_required
+def set_calorie_target():
+    """Update the signed-in user's daily calorie target."""
+    user_id = session.get("user_id")
+    target_input = request.form.get("calorie_target", "").strip()
+    try:
+        calorie_target = int(target_input)
+    except ValueError:
+        flash("Enter a whole-number daily calorie target.")
+        return redirect("/dashboard")
+
+    if not 1 <= calorie_target <= 20000:
+        flash("Daily calorie target must be between 1 and 20,000 kcal.")
+        return redirect("/dashboard")
+
+    goal_rows = db.execute(
+        "SELECT rowid FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1",
+        user_id,
+    )
+    if goal_rows:
+        db.execute(
+            "UPDATE nutrion SET calories = ? WHERE rowid = ?",
+            calorie_target,
+            goal_rows[0]["rowid"],
+        )
+    else:
+        db.execute(
+            "INSERT INTO nutrion (user_id, calories) VALUES (?, ?)",
+            user_id,
+            calorie_target,
+        )
+
+    flash("Daily calorie target saved.")
+    return redirect("/dashboard")
+
+
 @app.route("/track", methods=["GET", "POST"])
 @login_required
 def track_progress():
