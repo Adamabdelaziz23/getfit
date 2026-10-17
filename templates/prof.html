@@ -43,6 +43,15 @@
             </div>
         </div>
     </div>
+    <form method="post" action="{{ url_for('log_weight') }}" class="row g-2 justify-content-center align-items-end mb-3">
+        <div class="col-8 col-md-3 text-start">
+            <label for="weightLogInput" class="form-label small">Today's weigh-in (kg)</label>
+            <input type="number" id="weightLogInput" name="weight" class="form-control bg-secondary text-white border-0" min="1" max="1000" step="0.1" value="{{ user.weight if user.weight is not none else '' }}" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-warning">Record weight</button>
+        </div>
+    </form>
     <button class="btn btn-outline-warning btn-sm mx-auto" style="max-width: 150px;" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</button>
 </div>
 
@@ -101,7 +110,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Weight (kg)</label>
-                        <input type="number" id="editWeight" class="form-control bg-secondary text-white border-0" value="{{user.weight}}" name="weight">
+                        <input type="number" id="editWeight" class="form-control bg-secondary text-white border-0" value="{{ user.weight if user.weight is not none else '' }}" name="weight" min="1" max="1000" step="0.1">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Height (cm)</label>

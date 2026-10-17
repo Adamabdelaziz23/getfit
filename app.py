@@ -1,6 +1,8 @@
 import os
 import json
+import math
 from functools import wraps
+from datetime import date, timedelta
 from uuid import uuid4
 from cs50 import SQL
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,6 +12,120 @@ from flask_session import Session
 
 
 db = SQL("sqlite:///getfit.db")
+db.execute(
+    """CREATE TABLE IF NOT EXISTS weight_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           weight REAL NOT NULL CHECK (weight > 0),
+           measured_on TEXT NOT NULL,
+           recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           UNIQUE (user_id, measured_on),
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+db.execute(
+    """INSERT INTO weight_log (user_id, weight, measured_on)
+       SELECT id, CAST(weight AS REAL), date('now', 'localtime')
+       FROM users
+       WHERE weight IS NOT NULL AND CAST(weight AS REAL) > 0
+         AND NOT EXISTS (
+             SELECT 1 FROM weight_log WHERE weight_log.user_id = users.id
+         )"""
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS workout_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           workout_name TEXT NOT NULL,
+           notes TEXT,
+           completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+           session_date TEXT,
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+workout_log_columns = {
+    row["name"] for row in db.execute("SELECT name FROM pragma_table_info('workout_log')")
+}
+if "session_date" not in workout_log_columns:
+    db.execute("ALTER TABLE workout_log ADD COLUMN session_date TEXT")
+db.execute(
+    "UPDATE workout_log SET session_date = date(completed_at, 'localtime') WHERE session_date IS NULL"
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS exercise_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           session_id INTEGER NOT NULL,
+           exercise_name TEXT NOT NULL,
+           sets INTEGER NOT NULL,
+           reps INTEGER NOT NULL,
+           weight_kg REAL NOT NULL,
+           FOREIGN KEY (session_id) REFERENCES workout_log(id)
+       )"""
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS daily_nutrition (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           log_date TEXT NOT NULL,
+           calories REAL NOT NULL,
+           protein REAL,
+           carbs REAL,
+           fats REAL,
+           UNIQUE (user_id, log_date),
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS body_measurement_log (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           measured_on TEXT NOT NULL,
+           body_fat REAL,
+           chest REAL,
+           waist REAL,
+           arms REAL,
+           thighs REAL,
+           UNIQUE (user_id, measured_on),
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS progress_photo (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           photo_date TEXT NOT NULL,
+           filename TEXT NOT NULL,
+           caption TEXT,
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+
+
+def save_weight_reading(user_id, weight, measured_on=None):
+    db.execute(
+        """INSERT INTO weight_log (user_id, weight, measured_on)
+           VALUES (?, ?, COALESCE(?, date('now', 'localtime')))
+           ON CONFLICT(user_id, measured_on) DO UPDATE SET
+               weight = excluded.weight,
+               recorded_at = CURRENT_TIMESTAMP""",
+        user_id,
+        weight,
+        measured_on,
+    )
+
+
+def parse_optional_number(form, field, label, minimum, maximum):
+    raw_value = form.get(field, "").strip()
+    if not raw_value:
+        return None
+    try:
+        value = float(raw_value)
+    except ValueError as error:
+        raise ValueError(f"Enter a valid {label}.") from error
+    if not math.isfinite(value) or not minimum <= value <= maximum:
+        raise ValueError(f"{label.capitalize()} must be between {minimum:g} and {maximum:g}.")
+    return value
+
 
 # AI assistance: GitHub Copilot helped structure the weekly workout programs.
 WEEK_DAYS = (
@@ -101,7 +217,9 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 app.config["PROFILE_UPLOAD_FOLDER"] = os.path.join(app.static_folder, "uploads")
+app.config["PROGRESS_UPLOAD_FOLDER"] = os.path.join(app.static_folder, "uploads", "progress")
 os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["PROGRESS_UPLOAD_FOLDER"], exist_ok=True)
 Session(app)
 
 
@@ -124,7 +242,485 @@ def index():
 @login_required
 def dashboard():
     """Dashboard page for the gym app."""
-    return render_template("dash.html")
+    user_id = session.get("user_id")
+    today = date.today()
+    workout_day_rows = db.execute(
+          """SELECT session_date AS day, COUNT(*) AS sessions
+           FROM workout_log
+           WHERE user_id = ?
+              GROUP BY session_date""",
+        user_id,
+    )
+    sessions_by_day = {row["day"]: row["sessions"] for row in workout_day_rows}
+    streak_day = today if today.isoformat() in sessions_by_day else today - timedelta(days=1)
+    workout_streak = 0
+    while streak_day.isoformat() in sessions_by_day:
+        workout_streak += 1
+        streak_day -= timedelta(days=1)
+
+    activity_days = [
+        {
+            "label": (today - timedelta(days=offset)).isoformat(),
+            "sessions": sessions_by_day.get((today - timedelta(days=offset)).isoformat(), 0),
+        }
+        for offset in range(27, -1, -1)
+    ]
+    active_days_count = sum(day["sessions"] > 0 for day in activity_days)
+    monthly_sessions = db.execute(
+        """SELECT COUNT(*) AS total FROM workout_log
+           WHERE user_id = ?
+                         AND strftime('%Y-%m', session_date) = strftime('%Y-%m', 'now', 'localtime')""",
+        user_id,
+    )[0]["total"]
+    recent_rows = db.execute(
+        """SELECT id, workout_name, notes, session_date AS completed_day
+           FROM workout_log WHERE user_id = ?
+           ORDER BY session_date DESC, completed_at DESC, id DESC LIMIT 5""",
+        user_id,
+    )
+    recent_workouts = []
+    for row in recent_rows:
+        exercises = db.execute(
+            "SELECT exercise_name, sets, reps, weight_kg FROM exercise_log WHERE session_id = ? ORDER BY id",
+            row["id"],
+        )
+        exercise_details = [
+            f"{exercise['exercise_name']} {exercise['sets']} x {exercise['reps']} @ {float(exercise['weight_kg']):g} kg"
+            for exercise in exercises
+        ]
+        volume = sum(
+            exercise["sets"] * exercise["reps"] * exercise["weight_kg"]
+            for exercise in exercises
+        )
+        workout_day = date.fromisoformat(row["completed_day"])
+        recent_workouts.append({
+            "name": row["workout_name"],
+            "details": " · ".join(exercise_details) or row["notes"] or "Workout completed",
+            "date": f"{workout_day.strftime('%b')} {workout_day.day}",
+            "volume": volume,
+        })
+
+    users = db.execute("SELECT weight FROM users WHERE id = ?", user_id)
+    weight_rows = db.execute(
+        """SELECT measured_on, weight FROM weight_log
+           WHERE user_id = ?
+             AND measured_on BETWEEN date('now', 'localtime', '-29 days')
+                                 AND date('now', 'localtime')
+           ORDER BY measured_on""",
+        user_id,
+    )
+    weight_readings = [
+        {"date": date.fromisoformat(row["measured_on"]), "weight": float(row["weight"])}
+        for row in weight_rows
+    ]
+    chart_start = today - timedelta(days=29)
+    chart_points = []
+    chart_ticks = []
+    chart_line = ""
+    weight_change = "Log another weigh-in to see your trend"
+    if weight_readings:
+        min_weight = min(reading["weight"] for reading in weight_readings)
+        max_weight = max(reading["weight"] for reading in weight_readings)
+        padding = max((max_weight - min_weight) * 0.15, 0.5)
+        axis_min = math.floor((min_weight - padding) * 2) / 2
+        axis_max = math.ceil((max_weight + padding) * 2) / 2
+        axis_range = axis_max - axis_min
+        for index in range(4):
+            value = axis_max - axis_range * index / 3
+            chart_ticks.append({"y": 35 + index * 50, "label": f"{value:g} kg"})
+        for reading in weight_readings:
+            x = 48 + (reading["date"] - chart_start).days / 29 * 636
+            y = 35 + (axis_max - reading["weight"]) / axis_range * 150
+            chart_points.append({
+                "x": round(x, 1),
+                "y": round(y, 1),
+                "weight": reading["weight"],
+                "label": f"{reading['date'].strftime('%b')} {reading['date'].day}",
+            })
+        chart_line = " ".join(f"{point['x']},{point['y']}" for point in chart_points)
+        if len(weight_readings) > 1:
+            delta = weight_readings[-1]["weight"] - weight_readings[0]["weight"]
+            weight_change = f"{delta:+.1f} kg over the last 30 days"
+
+    chart_dates = [
+        {
+            "x": round(48 + offset / 29 * 636, 1),
+            "label": f"{(chart_start + timedelta(days=offset)).strftime('%b')} {(chart_start + timedelta(days=offset)).day}",
+        }
+        for offset in (0, 7, 14, 21, 29)
+    ]
+    records = db.execute(
+        "SELECT bench, squat, deadlift FROM pr WHERE user_id = ? ORDER BY id LIMIT 1",
+        user_id,
+    )
+    nutrition_goals = db.execute(
+        "SELECT calories, maintain, protien, carbs, fats FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1",
+        user_id,
+    )
+    daily_nutrition_rows = db.execute(
+        """SELECT calories, protein, carbs, fats FROM daily_nutrition
+           WHERE user_id = ? AND log_date = date('now', 'localtime')""",
+        user_id,
+    )
+    if daily_nutrition_rows:
+        food_totals = daily_nutrition_rows[0]
+    else:
+        food_totals = db.execute(
+            """SELECT COALESCE(SUM(calories), 0) AS calories,
+                      COALESCE(SUM(protein), 0) AS protein,
+                      COALESCE(SUM(carbs), 0) AS carbs,
+                      COALESCE(SUM(fats), 0) AS fats
+               FROM food_log
+               WHERE user_id = ? AND date(logged_at) = date('now', 'localtime')""",
+            user_id,
+        )[0]
+    measurement_rows = db.execute(
+        "SELECT * FROM body_measurement_log WHERE user_id = ? ORDER BY measured_on DESC LIMIT 1",
+        user_id,
+    )
+    body_measurement = measurement_rows[0] if measurement_rows else {}
+    measurement_fields = (
+        ("chest", "Chest", "cm"),
+        ("waist", "Waist", "cm"),
+        ("arms", "Arms", "cm"),
+        ("thighs", "Thighs", "cm"),
+    )
+    measurements = [
+        {"name": label, "value": body_measurement[field], "unit": unit}
+        for field, label, unit in measurement_fields
+        if body_measurement.get(field) is not None
+    ]
+    progress_photos = db.execute(
+        "SELECT filename, caption, photo_date FROM progress_photo WHERE user_id = ? ORDER BY photo_date DESC, id DESC LIMIT 2",
+        user_id,
+    )
+
+    current_weight = users[0]["weight"] if users else None
+    pr_values = records[0] if records else {"bench": None, "squat": None, "deadlift": None}
+    lift_labels = {"bench": "Bench press", "squat": "Squat", "deadlift": "Deadlift"}
+    personal_records = [
+        {"name": lift_labels[key], "weight": pr_values[key]}
+        for key in lift_labels
+    ]
+    saved_lifts = [record for record in personal_records if record["weight"] is not None]
+    best_lift = max(saved_lifts, key=lambda record: record["weight"]) if saved_lifts else None
+
+    goal = nutrition_goals[0] if nutrition_goals else {}
+    calories_goal = goal.get("calories") or goal.get("maintain")
+    macros = [
+        {"name": "Protein", "value": food_totals["protein"] or 0, "goal": goal.get("protien"), "unit": "g", "class": "protein"},
+        {"name": "Carbs", "value": food_totals["carbs"] or 0, "goal": goal.get("carbs"), "unit": "g", "class": "carbs"},
+        {"name": "Fat", "value": food_totals["fats"] or 0, "goal": goal.get("fats"), "unit": "g", "class": "fat"},
+    ]
+    macros = [
+        {**macro, "percent": min(100, round(macro["value"] * 100 / macro["goal"]))}
+        for macro in macros
+        if macro["goal"]
+    ]
+    calorie_percent = min(100, round(food_totals["calories"] * 100 / calories_goal)) if calories_goal else 0
+
+    return render_template(
+        "dash.html",
+        current_weight=current_weight,
+        weight_reading_count=len(weight_readings),
+        weight_change=weight_change,
+        weight_chart_points=chart_points,
+        weight_chart_ticks=chart_ticks,
+        weight_chart_line=chart_line,
+        weight_chart_dates=chart_dates,
+        body_fat=body_measurement.get("body_fat"),
+        measurements=measurements,
+        measurements_date=body_measurement.get("measured_on"),
+        progress_photos=progress_photos,
+        personal_records=personal_records,
+        best_lift=best_lift,
+        food_totals=food_totals,
+        calories_goal=calories_goal,
+        calories_remaining=max(0, calories_goal - food_totals["calories"]) if calories_goal else None,
+        calorie_percent=calorie_percent,
+        macros=macros,
+        workout_streak=workout_streak,
+        monthly_sessions=monthly_sessions,
+        activity_days=activity_days,
+        active_days_count=active_days_count,
+        recent_workouts=recent_workouts,
+    )
+
+
+@app.route("/track", methods=["GET", "POST"])
+@login_required
+def track_progress():
+    """Record a dated training session and daily progress details."""
+    user_id = session.get("user_id")
+    today = date.today()
+
+    if request.method == "GET":
+        try:
+            selected_day = date.fromisoformat(request.args.get("date", today.isoformat()))
+        except ValueError:
+            selected_day = today
+        if selected_day > today:
+            selected_day = today
+        entry_date = selected_day.isoformat()
+        nutrition_rows = db.execute(
+            "SELECT * FROM daily_nutrition WHERE user_id = ? AND log_date = ?",
+            user_id,
+            entry_date,
+        )
+        goal_rows = db.execute(
+            "SELECT calories, protien, carbs, fats FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1",
+            user_id,
+        )
+        measurement_rows = db.execute(
+            "SELECT * FROM body_measurement_log WHERE user_id = ? AND measured_on = ?",
+            user_id,
+            entry_date,
+        )
+        weight_rows = db.execute(
+            "SELECT weight FROM weight_log WHERE user_id = ? AND measured_on = ?",
+            user_id,
+            entry_date,
+        )
+        pr_rows = db.execute("SELECT * FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
+        return render_template(
+            "track.html",
+            entry_date=entry_date,
+            max_date=today.isoformat(),
+            nutrition_entry=nutrition_rows[0] if nutrition_rows else {},
+            nutrition_goals=goal_rows[0] if goal_rows else {},
+            measurement_entry=measurement_rows[0] if measurement_rows else {},
+            weight_entry=weight_rows[0] if weight_rows else {},
+            prs=pr_rows[0] if pr_rows else {"bench": None, "squat": None, "deadlift": None},
+        )
+
+    entry_date = request.form.get("entry_date", "").strip()
+    try:
+        selected_day = date.fromisoformat(entry_date)
+        if selected_day > today:
+            raise ValueError("Future dates cannot be logged.")
+
+        workout_name = request.form.get("workout_name", "").strip()
+        notes = request.form.get("session_notes", "").strip()
+        if len(workout_name) > 80 or len(notes) > 500:
+            raise ValueError("Session names must be under 80 characters and notes under 500.")
+
+        exercise_names = request.form.getlist("exercise_name[]")
+        exercise_sets = request.form.getlist("exercise_sets[]")
+        exercise_reps = request.form.getlist("exercise_reps[]")
+        exercise_weights = request.form.getlist("exercise_weight[]")
+        if max(map(len, (exercise_names, exercise_sets, exercise_reps, exercise_weights)), default=0) > 15:
+            raise ValueError("Log no more than 15 exercises in one session.")
+        exercises = []
+        row_count = max(map(len, (exercise_names, exercise_sets, exercise_reps, exercise_weights)), default=0)
+        for index in range(row_count):
+            values = [
+                fields[index].strip() if index < len(fields) else ""
+                for fields in (exercise_names, exercise_sets, exercise_reps, exercise_weights)
+            ]
+            if not any(values):
+                continue
+            name, sets_raw, reps_raw, weight_raw = values
+            if not all(values) or len(name) > 100:
+                raise ValueError("Complete each exercise name, set, rep, and weight field.")
+            try:
+                sets = int(sets_raw)
+                reps = int(reps_raw)
+            except ValueError as error:
+                raise ValueError("Sets and reps must be whole numbers.") from error
+            if not 1 <= sets <= 100 or not 1 <= reps <= 100:
+                raise ValueError("Sets and reps must be between 1 and 100.")
+            weight = parse_optional_number(
+                {"weight": weight_raw}, "weight", "lifted weight", 0, 1000
+            )
+            exercises.append({"name": name, "sets": sets, "reps": reps, "weight": weight})
+        if exercises and not workout_name:
+            raise ValueError("Add a training session name for these exercises.")
+        if notes and not workout_name:
+            raise ValueError("Add a training session name for these notes.")
+
+        nutrition_values = {
+            "calories": parse_optional_number(request.form, "calories", "calories", 0, 20000),
+            "protein": parse_optional_number(request.form, "protein", "protein", 0, 2000),
+            "carbs": parse_optional_number(request.form, "carbs", "carbohydrates", 0, 2000),
+            "fats": parse_optional_number(request.form, "fats", "fat", 0, 1000),
+        }
+        nutrition_entered = any(value is not None for value in nutrition_values.values())
+        if nutrition_entered and nutrition_values["calories"] is None:
+            raise ValueError("Enter calories when logging daily nutrition.")
+
+        body_values = {
+            "body_fat": parse_optional_number(request.form, "body_fat", "body-fat percentage", 0, 100),
+            "chest": parse_optional_number(request.form, "chest", "chest measurement", 0, 500),
+            "waist": parse_optional_number(request.form, "waist", "waist measurement", 0, 500),
+            "arms": parse_optional_number(request.form, "arms", "arm measurement", 0, 500),
+            "thighs": parse_optional_number(request.form, "thighs", "thigh measurement", 0, 500),
+        }
+        weight = parse_optional_number(request.form, "body_weight", "body weight", 1, 1000)
+        measurements_entered = any(value is not None for value in body_values.values())
+
+        goal_values = {
+            "calories": parse_optional_number(request.form, "calorie_goal", "calorie target", 1, 20000),
+            "protein": parse_optional_number(request.form, "protein_goal", "protein target", 1, 2000),
+            "carbs": parse_optional_number(request.form, "carbs_goal", "carbohydrate target", 1, 2000),
+            "fats": parse_optional_number(request.form, "fats_goal", "fat target", 1, 1000),
+        }
+        goals_entered = any(value is not None for value in goal_values.values())
+
+        pr_exercise = request.form.get("pr_exercise", "").strip()
+        pr_weight = parse_optional_number(request.form, "pr_weight", "personal record", 1, 1000)
+        if pr_exercise and pr_exercise not in {"bench", "squat", "deadlift"}:
+            raise ValueError("Choose a valid lift for the personal record.")
+        if bool(pr_exercise) != (pr_weight is not None):
+            raise ValueError("Choose a lift and enter its new personal-record weight.")
+
+        photo_upload = request.files.get("progress_photo")
+        photo_filename = None
+        photo_caption = request.form.get("photo_caption", "").strip()
+        if len(photo_caption) > 120:
+            raise ValueError("Photo captions must be under 120 characters.")
+        if photo_upload and photo_upload.filename:
+            extension = os.path.splitext(secure_filename(photo_upload.filename))[1].lower()
+            if extension not in {".png", ".jpg", ".jpeg", ".webp"}:
+                raise ValueError("Upload a PNG, JPEG, or WebP progress photo.")
+            header = photo_upload.stream.read(12)
+            photo_upload.stream.seek(0)
+            if extension == ".png":
+                valid_image = header.startswith(b"\x89PNG\r\n\x1a\n")
+            elif extension in {".jpg", ".jpeg"}:
+                valid_image = header.startswith(b"\xff\xd8\xff")
+            else:
+                valid_image = header[:4] == b"RIFF" and header[8:12] == b"WEBP"
+            if not valid_image:
+                raise ValueError("That file does not appear to be a valid image.")
+            photo_filename = f"{uuid4().hex}{extension}"
+        elif photo_caption:
+            raise ValueError("Choose a progress photo before adding a caption.")
+
+        has_training = bool(workout_name or exercises)
+        if not any((has_training, nutrition_entered, measurements_entered, weight is not None, goals_entered, pr_exercise, photo_filename)):
+            raise ValueError("Add at least one progress entry before saving.")
+    except ValueError as error:
+        flash(str(error))
+        return redirect(f"/track?date={entry_date or today.isoformat()}")
+
+    if has_training:
+        session_id = db.execute(
+            "INSERT INTO workout_log (user_id, workout_name, notes, session_date) VALUES (?, ?, ?, ?)",
+            user_id,
+            workout_name,
+            notes or None,
+            entry_date,
+        )
+        for exercise in exercises:
+            db.execute(
+                "INSERT INTO exercise_log (session_id, exercise_name, sets, reps, weight_kg) VALUES (?, ?, ?, ?, ?)",
+                session_id,
+                exercise["name"],
+                exercise["sets"],
+                exercise["reps"],
+                exercise["weight"],
+            )
+
+    if nutrition_entered:
+        db.execute(
+            """INSERT INTO daily_nutrition (user_id, log_date, calories, protein, carbs, fats)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(user_id, log_date) DO UPDATE SET
+                   calories = excluded.calories, protein = excluded.protein,
+                   carbs = excluded.carbs, fats = excluded.fats""",
+            user_id,
+            entry_date,
+            nutrition_values["calories"],
+            nutrition_values["protein"],
+            nutrition_values["carbs"],
+            nutrition_values["fats"],
+        )
+
+    if measurements_entered:
+        db.execute(
+            """INSERT INTO body_measurement_log
+                   (user_id, measured_on, body_fat, chest, waist, arms, thighs)
+               VALUES (?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(user_id, measured_on) DO UPDATE SET
+                   body_fat = excluded.body_fat, chest = excluded.chest,
+                   waist = excluded.waist, arms = excluded.arms, thighs = excluded.thighs""",
+            user_id,
+            entry_date,
+            body_values["body_fat"],
+            body_values["chest"],
+            body_values["waist"],
+            body_values["arms"],
+            body_values["thighs"],
+        )
+
+    if weight is not None:
+        save_weight_reading(user_id, weight, entry_date)
+        latest_weight = db.execute(
+            "SELECT weight, measured_on FROM weight_log WHERE user_id = ? ORDER BY measured_on DESC LIMIT 1",
+            user_id,
+        )[0]
+        if latest_weight["measured_on"] <= entry_date:
+            db.execute("UPDATE users SET weight = ? WHERE id = ?", weight, user_id)
+
+    if goals_entered:
+        goal_rows = db.execute("SELECT rowid FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", user_id)
+        if goal_rows:
+            db.execute(
+                "UPDATE nutrion SET calories = ?, protien = ?, carbs = ?, fats = ? WHERE rowid = ?",
+                goal_values["calories"],
+                goal_values["protein"],
+                goal_values["carbs"],
+                goal_values["fats"],
+                goal_rows[0]["rowid"],
+            )
+        else:
+            db.execute(
+                "INSERT INTO nutrion (user_id, calories, protien, carbs, fats) VALUES (?, ?, ?, ?, ?)",
+                user_id,
+                goal_values["calories"],
+                goal_values["protein"],
+                goal_values["carbs"],
+                goal_values["fats"],
+            )
+
+    pr_updated = False
+    if pr_exercise:
+        pr_rows = db.execute(
+            "SELECT id, bench, squat, deadlift FROM pr WHERE user_id = ? ORDER BY id LIMIT 1",
+            user_id,
+        )
+        if pr_rows:
+            if pr_rows[0][pr_exercise] is None or pr_weight > pr_rows[0][pr_exercise]:
+                db.execute(
+                    f"UPDATE pr SET {pr_exercise} = ? WHERE id = ?",
+                    pr_weight,
+                    pr_rows[0]["id"],
+                )
+                pr_updated = True
+        else:
+            values = {"bench": None, "squat": None, "deadlift": None}
+            values[pr_exercise] = pr_weight
+            db.execute(
+                "INSERT INTO pr (user_id, bench, squat, deadlift) VALUES (?, ?, ?, ?)",
+                user_id,
+                values["bench"],
+                values["squat"],
+                values["deadlift"],
+            )
+            pr_updated = True
+
+    if photo_filename:
+        photo_upload.save(os.path.join(app.config["PROGRESS_UPLOAD_FOLDER"], photo_filename))
+        db.execute(
+            "INSERT INTO progress_photo (user_id, photo_date, filename, caption) VALUES (?, ?, ?, ?)",
+            user_id,
+            entry_date,
+            photo_filename,
+            photo_caption or None,
+        )
+
+    flash("Daily progress saved." if not pr_exercise or pr_updated else "Progress saved. The saved personal record is already higher.")
+    return redirect(f"/track?date={entry_date}")
 
 
 @app.route("/nutrition")
@@ -200,15 +796,46 @@ def workouts():
     )
 
 
+@app.route("/workouts/log", methods=["POST"])
+@login_required
+def log_workout():
+    """Record a completed workout for the signed-in user."""
+    workout_name = request.form.get("workout_name", "").strip()
+    notes = request.form.get("notes", "").strip()
+    if not workout_name or len(workout_name) > 80 or len(notes) > 500:
+        flash("Enter a workout name up to 80 characters and notes up to 500 characters.")
+        return redirect("/workouts")
+
+    db.execute(
+        "INSERT INTO workout_log (user_id, workout_name, notes, session_date) VALUES (?, ?, ?, date('now', 'localtime'))",
+        session.get("user_id"),
+        workout_name,
+        notes or None,
+    )
+    flash("Workout session logged.")
+    return redirect("/workouts")
+
+
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
     user_id = session.get("user_id")
     if request.method == "POST":
         name = request.form.get("name")
-        weight = request.form.get("weight")
+        weight_input = request.form.get("weight", "").strip()
+        try:
+            weight = float(weight_input) if weight_input else None
+        except ValueError:
+            flash("Enter a valid weight in kilograms.")
+            return redirect("/profile")
+        if weight is not None and not 0 < weight <= 1000:
+            flash("Weight must be between 0 and 1,000 kg.")
+            return redirect("/profile")
         height = request.form.get("height")
         fitness_goal = request.form.get("fitness_goal")
+        previous_weight = db.execute(
+            "SELECT weight FROM users WHERE id = ?", user_id
+        )[0]["weight"]
         db.execute(
             "UPDATE users SET name = ?, weight = ?, height = ?, fitness_goal = ? WHERE id = ?",
             name,
@@ -217,11 +844,29 @@ def profile():
             fitness_goal,
             user_id,
         )
+        if weight is not None and previous_weight != weight:
+            save_weight_reading(user_id, weight)
         return redirect("/profile")
     user = db.execute("SELECT * FROM users WHERE id = ?", user_id)
     records = db.execute("SELECT * FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
     prs = records[0] if records else {"bench": None, "squat": None, "deadlift": None}
     return render_template("prof.html", user=user[0], prs=prs)
+
+
+@app.route("/profile/weight", methods=["POST"])
+@login_required
+def log_weight():
+    """Save today's weigh-in and update the user's current profile weight."""
+    weight = request.form.get("weight", type=float)
+    if weight is None or not 0 < weight <= 1000:
+        flash("Enter a weight between 0 and 1,000 kg.")
+        return redirect("/profile")
+
+    user_id = session.get("user_id")
+    db.execute("UPDATE users SET weight = ? WHERE id = ?", weight, user_id)
+    save_weight_reading(user_id, weight)
+    flash("Today's weigh-in was recorded.")
+    return redirect("/profile")
 
 
 # AI assistance: GitHub Copilot helped implement profile, PR, and picture-upload routes.

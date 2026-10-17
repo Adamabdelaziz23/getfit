@@ -1,24 +1,6 @@
 {% extends "layout.html" %}
 {% block title %}Progress Dashboard | GetFit{% endblock %}
 {% block content %}
-{% set workouts = [
-    {"name": "Upper body strength", "details": "Bench press · Rows · Shoulder press", "date": "Today", "volume": "8,420 kg"},
-    {"name": "Lower body", "details": "Squats · Romanian deadlifts · Lunges", "date": "Tue, Jun 18", "volume": "10,180 kg"},
-    {"name": "Push day", "details": "Incline press · Dips · Triceps", "date": "Mon, Jun 17", "volume": "6,940 kg"}
-] %}
-{% set measurements = [
-    {"name": "Chest", "value": "102", "unit": "cm"},
-    {"name": "Waist", "value": "81", "unit": "cm"},
-    {"name": "Arms", "value": "36", "unit": "cm"},
-    {"name": "Thighs", "value": "57", "unit": "cm"}
-] %}
-{% set macros = [
-    {"name": "Protein", "value": 145, "goal": 180, "unit": "g", "class": "protein"},
-    {"name": "Carbs", "value": 210, "goal": 260, "unit": "g", "class": "carbs"},
-    {"name": "Fat", "value": 52, "goal": 70, "unit": "g", "class": "fat"}
-] %}
-{% set active_days = [1, 2, 4, 5, 7, 8, 9, 11, 12, 14, 15, 16, 18, 19, 21, 23, 24, 26] %}
-
 <div class="dashboard-page">
     <section class="dashboard-heading">
         <div>
@@ -26,98 +8,109 @@
             <h2 class="dashboard-title">Progress dashboard</h2>
             <p class="dashboard-subtitle">Small steps. Stronger every week.</p>
         </div>
-        <div class="dashboard-period" aria-label="Selected period">Last 30 days <span aria-hidden="true">⌄</span></div>
+        <div class="dashboard-period">Current saved data</div>
     </section>
 
     <section class="dashboard-summary" aria-label="Progress summary">
-        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">↗</span><div><p>Current weight</p><strong>74.2 <small>kg</small></strong><span class="stat-note">↓ 1.8 kg this month</span></div></article>
-        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">✦</span><div><p>Workout streak</p><strong>12 <small>days</small></strong><span class="stat-note">Personal best: 16 days</span></div></article>
-        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">⌁</span><div><p>Sessions completed</p><strong>18 <small>/ 20</small></strong><span class="stat-note">2 sessions to monthly goal</span></div></article>
-        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">◎</span><div><p>Best lift this month</p><strong>100 <small>kg</small></strong><span class="stat-note">Squat · new personal record</span></div></article>
+        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">↗</span><div><p>Current weight</p><strong>{{ current_weight if current_weight is not none else "—" }} <small>{% if current_weight is not none %}kg{% endif %}</small></strong><span class="stat-note">{% if current_weight is not none %}Saved in your profile{% else %}Add your weight in your profile{% endif %}</span></div></article>
+        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">✦</span><div><p>Workout streak</p><strong>{{ workout_streak }} <small>days</small></strong><span class="stat-note">Consecutive days including today</span></div></article>
+        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">⌁</span><div><p>Sessions completed</p><strong>{{ monthly_sessions }} <small>this month</small></strong><span class="stat-note">{{ active_days_count }} active days in the last 28 days</span></div></article>
+        <article class="dashboard-stat"><span class="stat-icon" aria-hidden="true">◎</span><div><p>Best saved lift</p><strong>{{ best_lift.weight if best_lift else "—" }} <small>{% if best_lift %}kg{% endif %}</small></strong><span class="stat-note">{{ best_lift.name if best_lift else "No personal records saved" }}</span></div></article>
     </section>
 
     <section class="dashboard-grid dashboard-grid-primary">
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">BODY WEIGHT</p><h3>Weight trend</h3></div><span class="card-period">May 20 – Jun 18</span></div>
-            <div class="weight-reading"><strong>74.2 <small>kg</small></strong><span>−1.8 kg <small>this month</small></span></div>
-            <div class="chart-wrap">
-                <svg class="weight-chart" viewBox="0 0 700 220" role="img" aria-labelledby="weight-title weight-description" preserveAspectRatio="none">
-                    <title id="weight-title">Body weight over the last 30 days</title>
-                    <desc id="weight-description">Weight trends downward from 76 kilograms to 74.2 kilograms.</desc>
-                    <defs><linearGradient id="weight-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#d4af37" stop-opacity=".25"/><stop offset="100%" stop-color="#d4af37" stop-opacity="0"/></linearGradient></defs>
-                    <line x1="42" y1="35" x2="690" y2="35" class="chart-gridline"/><line x1="42" y1="85" x2="690" y2="85" class="chart-gridline"/><line x1="42" y1="135" x2="690" y2="135" class="chart-gridline"/><line x1="42" y1="185" x2="690" y2="185" class="chart-gridline"/>
-                    <text x="0" y="39" class="chart-label">77 kg</text><text x="0" y="89" class="chart-label">76 kg</text><text x="0" y="139" class="chart-label">75 kg</text><text x="0" y="189" class="chart-label">74 kg</text>
-                    <path d="M48 66 C90 72 102 79 130 81 S180 89 210 85 S260 106 290 101 S340 110 370 112 S420 131 450 124 S500 136 530 141 S580 148 610 155 S660 161 684 168 L684 185 L48 185 Z" class="chart-area"/>
-                    <path d="M48 66 C90 72 102 79 130 81 S180 89 210 85 S260 106 290 101 S340 110 370 112 S420 131 450 124 S500 136 530 141 S580 148 610 155 S660 161 684 168" class="chart-line"/><circle cx="684" cy="168" r="5" class="chart-point"/>
-                </svg>
-                <div class="chart-dates"><span>May 20</span><span>May 27</span><span>Jun 3</span><span>Jun 10</span><span>Jun 18</span></div>
-            </div>
+            <div class="card-heading"><div><p class="card-kicker">BODY WEIGHT</p><h3>Weight trend</h3></div><span class="card-period">Last 30 days</span></div>
+            <div class="weight-reading"><strong>{{ current_weight if current_weight is not none else "—" }} <small>{% if current_weight is not none %}kg{% endif %}</small></strong><span>{{ weight_change }}</span></div>
+            {% if weight_chart_points %}
+                <div class="chart-wrap">
+                    <svg class="weight-chart" viewBox="0 0 700 220" role="img" aria-labelledby="weight-title weight-description" preserveAspectRatio="none">
+                        <title id="weight-title">Body weight over the last 30 days</title>
+                        <desc id="weight-description">Graph of {{ weight_reading_count }} dated weigh-ins.</desc>
+                        {% for tick in weight_chart_ticks %}<line x1="42" y1="{{ tick.y }}" x2="690" y2="{{ tick.y }}" class="chart-gridline"/><text x="0" y="{{ tick.y + 4 }}" class="chart-label">{{ tick.label }}</text>{% endfor %}
+                        <polyline points="{{ weight_chart_line }}" class="chart-line"/>
+                        {% for point in weight_chart_points %}<circle cx="{{ point.x }}" cy="{{ point.y }}" r="4" class="chart-point"><title>{{ point.label }}: {{ point.weight }} kg</title></circle>{% endfor %}
+                        {% for tick in weight_chart_dates %}<text x="{{ tick.x }}" y="210" text-anchor="middle" class="chart-label">{{ tick.label }}</text>{% endfor %}
+                    </svg>
+                </div>
+            {% else %}
+                <div class="chart-wrap"><p class="dashboard-note">Record a weigh-in in your profile to start the graph.</p></div>
+            {% endif %}
         </article>
 
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">STRENGTH</p><h3>Personal records</h3></div><span class="pr-badge">+3 this month</span></div>
+            <div class="card-heading"><div><p class="card-kicker">STRENGTH</p><h3>Personal records</h3></div></div>
             <div class="pr-list">
-                <div class="pr-row"><div class="pr-name"><span class="pr-dot bench-dot"></span><span>Bench press<small>Last PR · Jun 12</small></span></div><div class="pr-value"><strong>75</strong><small>kg</small></div><span class="pr-change">+5 kg</span></div>
-                <div class="pr-row"><div class="pr-name"><span class="pr-dot squat-dot"></span><span>Squat<small>Last PR · Jun 16</small></span></div><div class="pr-value"><strong>100</strong><small>kg</small></div><span class="pr-change">+10 kg</span></div>
-                <div class="pr-row"><div class="pr-name"><span class="pr-dot deadlift-dot"></span><span>Deadlift<small>Last PR · Jun 8</small></span></div><div class="pr-value"><strong>120</strong><small>kg</small></div><span class="pr-change">+5 kg</span></div>
+                {% for record in personal_records %}<div class="pr-row"><div class="pr-name"><span class="pr-dot {{ record.name|lower|replace(' ', '-') }}-dot"></span><span>{{ record.name }}<small>Current saved record</small></span></div><div class="pr-value"><strong>{{ record.weight if record.weight is not none else "—" }}</strong>{% if record.weight is not none %}<small>kg</small>{% endif %}</div></div>{% endfor %}
             </div>
-            <p class="dashboard-note">Your top lifts are trending up this month.</p>
+            <p class="dashboard-note">Record history is not stored, so monthly changes are unavailable.</p>
         </article>
     </section>
 
     <section class="dashboard-grid dashboard-grid-secondary">
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">CONSISTENCY</p><h3>Activity & workouts</h3></div><span class="activity-total"><strong>18</strong> workouts</span></div>
-            <div class="streak-heading"><strong>12 day streak</strong><span>May – June</span></div>
-            <div class="streak-grid" role="img" aria-label="Workout activity calendar with 18 active days in the last 28 days">
-                {% for day in range(1, 29) %}<span class="streak-cell{% if day in active_days %} is-active{% endif %}{% if day in [24, 26] %} is-bright{% endif %}"></span>{% endfor %}
+            <div class="card-heading"><div><p class="card-kicker">CONSISTENCY</p><h3>Activity & workouts</h3></div><span class="activity-total"><strong>{{ monthly_sessions }}</strong> this month</span></div>
+            <div class="streak-heading"><strong>{{ workout_streak }} day streak</strong><span>Last 28 days</span></div>
+            <div class="streak-grid" role="img" aria-label="Workout activity calendar with {{ active_days_count }} active days in the last 28 days">
+                {% for day in activity_days %}<span class="streak-cell{% if day.sessions %} is-active{% endif %}{% if day.sessions > 1 %} is-bright{% endif %}" title="{{ day.label }}: {{ day.sessions }} sessions"></span>{% endfor %}
             </div>
             <div class="streak-legend"><span>Less</span><i></i><i></i><i></i><i></i><span>More</span></div>
-            <div class="recent-heading"><strong>Recent workouts</strong><span>Latest activity</span></div>
+            <div class="recent-heading"><strong>Recent workouts</strong><a href="{{ url_for('workouts') }}">Log a session</a></div>
             <div class="workout-list">
-                {% for workout in workouts %}
-                    <div class="workout-row"><span class="workout-symbol" aria-hidden="true">↗</span><div class="workout-info"><strong>{{ workout.name }}</strong><span>{{ workout.details }}</span></div><div class="workout-meta"><strong>{{ workout.volume }}</strong><span>{{ workout.date }}</span></div></div>
+                {% for workout in recent_workouts %}
+                    <div class="workout-row"><span class="workout-symbol" aria-hidden="true">↗</span><div class="workout-info"><strong>{{ workout.name }}</strong><span>{{ workout.details }}</span></div><div class="workout-meta"><strong>{{ workout.volume|round|int }} kg</strong><span>{{ workout.date }}</span></div></div>
+                {% else %}
+                    <p class="dashboard-note">No workouts logged yet.</p>
                 {% endfor %}
             </div>
         </article>
 
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">BODY COMPOSITION</p><h3>Measurements</h3></div><span class="card-period">Updated Jun 16</span></div>
-            <div class="body-composition">
-                <div class="body-fat-ring" role="img" aria-label="Body fat 18.4 percent"><div><strong>18.4%</strong><span>body fat</span></div></div>
-                <div class="body-composition-note"><strong>Moving in the right direction</strong><span>Body fat is down 0.6% since last month.</span></div>
-            </div>
+            <div class="card-heading"><div><p class="card-kicker">BODY COMPOSITION</p><h3>Measurements</h3></div><span class="card-period">{{ measurements_date or "Not tracked" }}</span></div>
+            {% if body_fat is not none %}
+                <div class="body-composition">
+                    <div class="body-fat-ring" role="img" aria-label="Body fat {{ body_fat }} percent" style="background: conic-gradient(var(--dashboard-gold) 0 {{ body_fat }}%, rgba(255, 255, 255, 0.09) {{ body_fat }}% 100%)"><div><strong>{{ body_fat }}%</strong><span>body fat</span></div></div>
+                    <div class="body-composition-note"><strong>Latest check-in</strong><span>Body-fat percentage recorded {{ measurements_date }}.</span></div>
+                </div>
+            {% else %}
+                <p class="dashboard-note">Log a body-fat check-in to see body composition here.</p>
+            {% endif %}
             <div class="measurement-grid">
-                {% for measurement in measurements %}<div class="measurement-item"><span>{{ measurement.name }}</span><strong>{{ measurement.value }} <small>{{ measurement.unit }}</small></strong></div>{% endfor %}
+                {% for measurement in measurements %}<div class="measurement-item"><span>{{ measurement.name }}</span><strong>{{ measurement.value }} <small>{{ measurement.unit }}</small></strong></div>{% else %}<p class="dashboard-note">No measurements recorded yet.</p>{% endfor %}
             </div>
-            <p class="dashboard-note">Measurements show progress beyond the scale.</p>
         </article>
     </section>
 
     <section class="dashboard-grid dashboard-grid-bottom">
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">YOUR JOURNEY</p><h3>Progress photos</h3></div><button class="dashboard-link" type="button">View gallery <span aria-hidden="true">→</span></button></div>
-            <div class="photo-gallery">
-                <div class="progress-photo photo-start"><div class="photo-silhouette" aria-hidden="true"><i></i><b></b></div><span class="photo-date">MAY 20</span><span class="photo-label">Starting point</span></div>
-                <div class="photo-connector" aria-hidden="true">→</div>
-                <div class="progress-photo photo-latest"><div class="photo-silhouette" aria-hidden="true"><i></i><b></b></div><span class="photo-date">JUN 18</span><span class="photo-label">Latest check-in</span></div>
-            </div>
-            <p class="dashboard-note">A monthly snapshot makes your hard work visible.</p>
+            <div class="card-heading"><div><p class="card-kicker">YOUR JOURNEY</p><h3>Progress photos</h3></div><a class="dashboard-link" href="{{ url_for('track_progress') }}">Add a photo</a></div>
+            {% if progress_photos %}
+                <div class="photo-gallery{% if progress_photos|length == 1 %} has-one-photo{% endif %}">
+                    {% for photo in progress_photos %}
+                        <div class="progress-photo{% if loop.last %} photo-latest{% endif %}">
+                            <img src="{{ url_for('static', filename='uploads/progress/' ~ photo.filename) }}" alt="{{ photo.caption or 'Progress check-in photo' }}">
+                            <span class="photo-date">{{ photo.photo_date }}</span><span class="photo-label">{{ photo.caption or "Check-in" }}</span>
+                        </div>
+                        {% if not loop.last %}<span class="photo-connector" aria-hidden="true">→</span>{% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="dashboard-note">No progress photos have been saved yet.</p>
+            {% endif %}
         </article>
 
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">TODAY'S FUEL</p><h3>Nutrition & goals</h3></div><span class="goal-badge">On track</span></div>
+            <div class="card-heading"><div><p class="card-kicker">TODAY'S FUEL</p><h3>Nutrition & goals</h3></div><span class="goal-badge">{% if calories_goal %}Daily target{% else %}No target{% endif %}</span></div>
             <div class="calorie-summary">
-                <div class="calorie-copy"><span>Calories</span><strong>1,840 <small>/ 2,400 kcal</small></strong><span class="calorie-remaining">560 kcal remaining</span></div>
-                <div class="calorie-progress" role="progressbar" aria-label="Calories consumed" aria-valuenow="77" aria-valuemin="0" aria-valuemax="100"><span></span></div>
+                <div class="calorie-copy"><span>Calories</span><strong>{{ food_totals.calories|round|int }} <small>{% if calories_goal %}/ {{ calories_goal|round|int }} kcal{% else %}kcal{% endif %}</small></strong><span class="calorie-remaining">{% if calories_remaining is not none %}{{ calories_remaining|round|int }} kcal remaining{% else %}Set a calorie target to see what remains{% endif %}</span></div>
+                <div class="calorie-progress" role="progressbar" aria-label="Calories consumed" aria-valuenow="{{ calorie_percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ calorie_percent }}%"></span></div>
             </div>
             <div class="macro-list">
                 {% for macro in macros %}
-                    {% set percent = (macro.value * 100 / macro.goal)|round|int %}
-                    <div class="macro-row"><div class="macro-label"><span class="macro-dot {{ macro.class }}"></span><strong>{{ macro.name }}</strong><span>{{ macro.value }} / {{ macro.goal }}{{ macro.unit }}</span></div><div class="macro-progress {{ macro.class }}" role="progressbar" aria-label="{{ macro.name }} consumed" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100"><span></span></div></div>
+                    <div class="macro-row"><div class="macro-label"><span class="macro-dot {{ macro.class }}"></span><strong>{{ macro.name }}</strong><span>{{ macro.value|round|int }} / {{ macro.goal|round|int }}{{ macro.unit }}</span></div><div class="macro-progress {{ macro.class }}" role="progressbar" aria-label="{{ macro.name }} consumed" aria-valuenow="{{ macro.percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ macro.percent }}%"></span></div></div>
                 {% endfor %}
             </div>
-            <div class="goal-footer"><span class="goal-check" aria-hidden="true">✓</span><span><strong>Monthly goal</strong>Complete 20 workouts this month</span><strong class="goal-count">18/20</strong></div>
+            {% if not macros %}<p class="dashboard-note">No saved macro targets. Food totals include entries logged today.</p>{% endif %}
         </article>
     </section>
 </div>

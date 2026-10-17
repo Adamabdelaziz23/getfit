@@ -162,3 +162,20 @@ if (nutritionCalculatorForm) {
     });
 }
 
+const exerciseRows = document.getElementById('exerciseRows');
+const addExerciseRow = document.getElementById('addExerciseRow');
+const exerciseRowTemplate = document.getElementById('exerciseRowTemplate');
+
+if (exerciseRows && addExerciseRow && exerciseRowTemplate) {
+    addExerciseRow.addEventListener('click', function() {
+        exerciseRows.append(exerciseRowTemplate.content.cloneNode(true));
+    });
+
+    exerciseRows.addEventListener('click', function(event) {
+        const removeButton = event.target.closest('[data-remove-exercise]');
+        if (removeButton) {
+            removeButton.closest('[data-exercise-row]').remove();
+        }
+    });
+}
+

@@ -51,3 +51,73 @@ CREATE TABLE nutrion (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- 6. Completed workout sessions
+CREATE TABLE workout_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    workout_name TEXT NOT NULL,
+    notes TEXT,
+    completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    session_date TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 7. Exercises recorded for each completed session
+CREATE TABLE exercise_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id INTEGER NOT NULL,
+    exercise_name TEXT NOT NULL,
+    sets INTEGER NOT NULL,
+    reps INTEGER NOT NULL,
+    weight_kg REAL NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES workout_log(id)
+);
+
+-- 8. Daily nutrition totals
+CREATE TABLE daily_nutrition (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    log_date TEXT NOT NULL,
+    calories REAL NOT NULL,
+    protein REAL,
+    carbs REAL,
+    fats REAL,
+    UNIQUE (user_id, log_date),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 9. Body-composition measurements
+CREATE TABLE body_measurement_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    measured_on TEXT NOT NULL,
+    body_fat REAL,
+    chest REAL,
+    waist REAL,
+    arms REAL,
+    thighs REAL,
+    UNIQUE (user_id, measured_on),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 10. Progress photos
+CREATE TABLE progress_photo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    photo_date TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    caption TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 11. Daily body-weight history
+CREATE TABLE weight_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    weight REAL NOT NULL CHECK (weight > 0),
+    measured_on TEXT NOT NULL,
+    recorded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, measured_on),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
