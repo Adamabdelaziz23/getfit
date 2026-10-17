@@ -504,10 +504,6 @@ def track_progress():
             user_id,
             entry_date,
         )
-        goal_rows = db.execute(
-            "SELECT calories, protien, carbs, fats FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1",
-            user_id,
-        )
         measurement_rows = db.execute(
             "SELECT * FROM body_measurement_log WHERE user_id = ? AND measured_on = ?",
             user_id,
@@ -524,7 +520,6 @@ def track_progress():
             entry_date=entry_date,
             max_date=today.isoformat(),
             nutrition_entry=nutrition_rows[0] if nutrition_rows else {},
-            nutrition_goals=goal_rows[0] if goal_rows else {},
             measurement_entry=measurement_rows[0] if measurement_rows else {},
             weight_entry=weight_rows[0] if weight_rows else {},
             prs=pr_rows[0] if pr_rows else {"bench": None, "squat": None, "deadlift": None},
@@ -595,14 +590,6 @@ def track_progress():
         weight = parse_optional_number(request.form, "body_weight", "body weight", 1, 1000)
         measurements_entered = any(value is not None for value in body_values.values())
 
-        goal_values = {
-            "calories": parse_optional_number(request.form, "calorie_goal", "calorie target", 1, 20000),
-            "protein": parse_optional_number(request.form, "protein_goal", "protein target", 1, 2000),
-            "carbs": parse_optional_number(request.form, "carbs_goal", "carbohydrate target", 1, 2000),
-            "fats": parse_optional_number(request.form, "fats_goal", "fat target", 1, 1000),
-        }
-        goals_entered = any(value is not None for value in goal_values.values())
-
         pr_exercise = request.form.get("pr_exercise", "").strip()
         pr_weight = parse_optional_number(request.form, "pr_weight", "personal record", 1, 1000)
         if pr_exercise and pr_exercise not in {"bench", "squat", "deadlift"}:
@@ -610,31 +597,8 @@ def track_progress():
         if bool(pr_exercise) != (pr_weight is not None):
             raise ValueError("Choose a lift and enter its new personal-record weight.")
 
-        photo_upload = request.files.get("progress_photo")
-        photo_filename = None
-        photo_caption = request.form.get("photo_caption", "").strip()
-        if len(photo_caption) > 120:
-            raise ValueError("Photo captions must be under 120 characters.")
-        if photo_upload and photo_upload.filename:
-            extension = os.path.splitext(secure_filename(photo_upload.filename))[1].lower()
-            if extension not in {".png", ".jpg", ".jpeg", ".webp"}:
-                raise ValueError("Upload a PNG, JPEG, or WebP progress photo.")
-            header = photo_upload.stream.read(12)
-            photo_upload.stream.seek(0)
-            if extension == ".png":
-                valid_image = header.startswith(b"\x89PNG\r\n\x1a\n")
-            elif extension in {".jpg", ".jpeg"}:
-                valid_image = header.startswith(b"\xff\xd8\xff")
-            else:
-                valid_image = header[:4] == b"RIFF" and header[8:12] == b"WEBP"
-            if not valid_image:
-                raise ValueError("That file does not appear to be a valid image.")
-            photo_filename = f"{uuid4().hex}{extension}"
-        elif photo_caption:
-            raise ValueError("Choose a progress photo before adding a caption.")
-
         has_training = bool(workout_name or exercises)
-        if not any((has_training, nutrition_entered, measurements_entered, weight is not None, goals_entered, pr_exercise, photo_filename)):
+        if not any((has_training, nutrition_entered, measurements_entered, weight is not None, pr_exercise)):
             raise ValueError("Add at least one progress entry before saving.")
     except ValueError as error:
         flash(str(error))
@@ -699,27 +663,6 @@ def track_progress():
         if latest_weight["measured_on"] <= entry_date:
             db.execute("UPDATE users SET weight = ? WHERE id = ?", weight, user_id)
 
-    if goals_entered:
-        goal_rows = db.execute("SELECT rowid FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1", user_id)
-        if goal_rows:
-            db.execute(
-                "UPDATE nutrion SET calories = ?, protien = ?, carbs = ?, fats = ? WHERE rowid = ?",
-                goal_values["calories"],
-                goal_values["protein"],
-                goal_values["carbs"],
-                goal_values["fats"],
-                goal_rows[0]["rowid"],
-            )
-        else:
-            db.execute(
-                "INSERT INTO nutrion (user_id, calories, protien, carbs, fats) VALUES (?, ?, ?, ?, ?)",
-                user_id,
-                goal_values["calories"],
-                goal_values["protein"],
-                goal_values["carbs"],
-                goal_values["fats"],
-            )
-
     pr_updated = False
     if pr_exercise:
         pr_rows = db.execute(
@@ -745,16 +688,6 @@ def track_progress():
                 values["deadlift"],
             )
             pr_updated = True
-
-    if photo_filename:
-        photo_upload.save(os.path.join(app.config["PROGRESS_UPLOAD_FOLDER"], photo_filename))
-        db.execute(
-            "INSERT INTO progress_photo (user_id, photo_date, filename, caption) VALUES (?, ?, ?, ?)",
-            user_id,
-            entry_date,
-            photo_filename,
-            photo_caption or None,
-        )
 
     flash("Daily progress saved." if not pr_exercise or pr_updated else "Progress saved. The saved personal record is already higher.")
     return redirect(f"/track?date={entry_date}")

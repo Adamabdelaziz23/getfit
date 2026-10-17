@@ -86,3 +86,8 @@ Maintenance
 -----------
 Update this prototype after feature or setup changes. Check git status before
 committing so unrelated work and local user data are not included.
+
+
+
+
+in the dashboard page apply the following

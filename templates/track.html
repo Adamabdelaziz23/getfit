@@ -19,7 +19,7 @@
 		{% endif %}
 	{% endwith %}
 
-	<form method="post" action="{{ url_for('track_progress') }}" enctype="multipart/form-data" class="track-form">
+	<form method="post" action="{{ url_for('track_progress') }}" class="track-form">
 		<section class="track-section">
 			<div class="track-section-heading">
 				<div><p>01 / TRAINING</p><h3>Session and exercises</h3></div>
@@ -62,7 +62,7 @@
 
 		<section class="track-section">
 			<div class="track-section-heading">
-				<div><p>02 / NUTRITION</p><h3>Daily intake and targets</h3></div>
+				<div><p>02 / NUTRITION</p><h3>Daily intake</h3></div>
 			</div>
 			<div class="row g-3">
 				<div class="col-6 col-md-3"><label for="calories" class="form-label">Calories consumed</label><div class="input-group"><input type="number" id="calories" name="calories" class="form-control bg-secondary text-white border-0" min="0" max="20000" step="1" value="{{ nutrition_entry.calories if nutrition_entry.calories is defined else '' }}"><span class="input-group-text">kcal</span></div></div>
@@ -70,34 +70,25 @@
 				<div class="col-6 col-md-3"><label for="carbs" class="form-label">Carbohydrates</label><div class="input-group"><input type="number" id="carbs" name="carbs" class="form-control bg-secondary text-white border-0" min="0" max="2000" step="1" value="{{ nutrition_entry.carbs if nutrition_entry.carbs is defined else '' }}"><span class="input-group-text">g</span></div></div>
 				<div class="col-6 col-md-3"><label for="fats" class="form-label">Fat</label><div class="input-group"><input type="number" id="fats" name="fats" class="form-control bg-secondary text-white border-0" min="0" max="1000" step="1" value="{{ nutrition_entry.fats if nutrition_entry.fats is defined else '' }}"><span class="input-group-text">g</span></div></div>
 			</div>
-			<div class="track-targets">
-				<h4>Daily targets</h4>
-				<div class="row g-3">
-					<div class="col-6 col-md-3"><label for="calorieGoal" class="form-label">Calories</label><input type="number" id="calorieGoal" name="calorie_goal" class="form-control bg-secondary text-white border-0" min="1" max="20000" value="{{ nutrition_goals.calories if nutrition_goals.calories is defined else '' }}"></div>
-					<div class="col-6 col-md-3"><label for="proteinGoal" class="form-label">Protein (g)</label><input type="number" id="proteinGoal" name="protein_goal" class="form-control bg-secondary text-white border-0" min="1" max="2000" value="{{ nutrition_goals.protien if nutrition_goals.protien is defined else '' }}"></div>
-					<div class="col-6 col-md-3"><label for="carbsGoal" class="form-label">Carbohydrates (g)</label><input type="number" id="carbsGoal" name="carbs_goal" class="form-control bg-secondary text-white border-0" min="1" max="2000" value="{{ nutrition_goals.carbs if nutrition_goals.carbs is defined else '' }}"></div>
-					<div class="col-6 col-md-3"><label for="fatsGoal" class="form-label">Fat (g)</label><input type="number" id="fatsGoal" name="fats_goal" class="form-control bg-secondary text-white border-0" min="1" max="1000" value="{{ nutrition_goals.fats if nutrition_goals.fats is defined else '' }}"></div>
-				</div>
-			</div>
 		</section>
 
 		<section class="track-section">
 			<div class="track-section-heading">
-				<div><p>03 / BODY CHECK-IN</p><h3>Weight and measurements</h3></div>
+				<div><p>03 / BODY CHECK-IN</p><h3>Weight and measurements</h3><span class="small text-secondary">All fields are optional.</span></div>
 			</div>
 			<div class="row g-3">
-				<div class="col-6 col-md-4"><label for="bodyWeight" class="form-label">Weight</label><div class="input-group"><input type="number" id="bodyWeight" name="body_weight" class="form-control bg-secondary text-white border-0" min="1" max="1000" step="0.1" value="{{ weight_entry.weight if weight_entry.weight is defined else '' }}"><span class="input-group-text">kg</span></div></div>
-				<div class="col-6 col-md-4"><label for="bodyFat" class="form-label">Body fat</label><div class="input-group"><input type="number" id="bodyFat" name="body_fat" class="form-control bg-secondary text-white border-0" min="0" max="100" step="0.1" value="{{ measurement_entry.body_fat if measurement_entry.body_fat is defined else '' }}"><span class="input-group-text">%</span></div></div>
-				<div class="col-6 col-md-4"><label for="chest" class="form-label">Chest</label><div class="input-group"><input type="number" id="chest" name="chest" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.chest if measurement_entry.chest is defined else '' }}"><span class="input-group-text">cm</span></div></div>
-				<div class="col-6 col-md-4"><label for="waist" class="form-label">Waist</label><div class="input-group"><input type="number" id="waist" name="waist" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.waist if measurement_entry.waist is defined else '' }}"><span class="input-group-text">cm</span></div></div>
-				<div class="col-6 col-md-4"><label for="arms" class="form-label">Arms</label><div class="input-group"><input type="number" id="arms" name="arms" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.arms if measurement_entry.arms is defined else '' }}"><span class="input-group-text">cm</span></div></div>
-				<div class="col-6 col-md-4"><label for="thighs" class="form-label">Thighs</label><div class="input-group"><input type="number" id="thighs" name="thighs" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.thighs if measurement_entry.thighs is defined else '' }}"><span class="input-group-text">cm</span></div></div>
+				<div class="col-6 col-md-4"><label for="bodyWeight" class="form-label">Weight (optional)</label><div class="input-group"><input type="number" id="bodyWeight" name="body_weight" class="form-control bg-secondary text-white border-0" min="1" max="1000" step="0.1" value="{{ weight_entry.weight if weight_entry.weight is defined else '' }}"><span class="input-group-text">kg</span></div></div>
+				<div class="col-6 col-md-4"><label for="bodyFat" class="form-label">Body fat percentage (optional)</label><div class="input-group"><input type="number" id="bodyFat" name="body_fat" class="form-control bg-secondary text-white border-0" min="0" max="100" step="0.1" value="{{ measurement_entry.body_fat if measurement_entry.body_fat is defined else '' }}"><span class="input-group-text">%</span></div></div>
+				<div class="col-6 col-md-4"><label for="chest" class="form-label">Chest (optional)</label><div class="input-group"><input type="number" id="chest" name="chest" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.chest if measurement_entry.chest is defined else '' }}"><span class="input-group-text">cm</span></div></div>
+				<div class="col-6 col-md-4"><label for="waist" class="form-label">Waist (optional)</label><div class="input-group"><input type="number" id="waist" name="waist" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.waist if measurement_entry.waist is defined else '' }}"><span class="input-group-text">cm</span></div></div>
+				<div class="col-6 col-md-4"><label for="arms" class="form-label">Arms (optional)</label><div class="input-group"><input type="number" id="arms" name="arms" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.arms if measurement_entry.arms is defined else '' }}"><span class="input-group-text">cm</span></div></div>
+				<div class="col-6 col-md-4"><label for="thighs" class="form-label">Thighs (optional)</label><div class="input-group"><input type="number" id="thighs" name="thighs" class="form-control bg-secondary text-white border-0" min="0" max="500" step="0.1" value="{{ measurement_entry.thighs if measurement_entry.thighs is defined else '' }}"><span class="input-group-text">cm</span></div></div>
 			</div>
 		</section>
 
 		<section class="track-section">
 			<div class="track-section-heading">
-				<div><p>04 / PERSONAL RECORD</p><h3>Update a best lift</h3></div>
+				<div><p>04 / PERSONAL RECORD</p><h3>Update a best lift <span class="small text-secondary">(optional)</span></h3></div>
 			</div>
 			<div class="row g-3 align-items-end">
 				<div class="col-md-5">
@@ -114,16 +105,6 @@
 					<input type="number" id="prWeight" name="pr_weight" class="form-control bg-secondary text-white border-0" min="1" max="1000" step="0.5" placeholder="Optional">
 				</div>
 				<div class="col-md-2 small text-secondary">Only a heavier best replaces a saved record.</div>
-			</div>
-		</section>
-
-		<section class="track-section">
-			<div class="track-section-heading">
-				<div><p>05 / PROGRESS PHOTO</p><h3>Save a check-in photo</h3></div>
-			</div>
-			<div class="row g-3 align-items-end">
-				<div class="col-md-7"><label for="progressPhoto" class="form-label">Photo</label><input type="file" id="progressPhoto" name="progress_photo" class="form-control bg-secondary text-white border-0" accept="image/png,image/jpeg,image/webp"></div>
-				<div class="col-md-5"><label for="photoCaption" class="form-label">Caption</label><input type="text" id="photoCaption" name="photo_caption" class="form-control bg-secondary text-white border-0" maxlength="120" placeholder="Optional"></div>
 			</div>
 		</section>
 
