@@ -1190,7 +1190,33 @@ def profile():
     user = db.execute("SELECT * FROM users WHERE id = ?", user_id)
     records = db.execute("SELECT * FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
     prs = records[0] if records else {"bench": None, "squat": None, "deadlift": None}
-    return render_template("prof.html", user=user[0], prs=prs)
+    nutrition_goals = db.execute(
+        "SELECT calories, maintain FROM nutrion WHERE user_id = ? ORDER BY rowid DESC LIMIT 1",
+        user_id,
+    )
+    goal = nutrition_goals[0] if nutrition_goals else {}
+    calories_goal = goal.get("calories") or goal.get("maintain")
+
+    workout_days = db.execute(
+        "SELECT DISTINCT session_date FROM workout_log WHERE user_id = ?",
+        user_id,
+    )
+    sessions_by_day = {row["session_date"] for row in workout_days}
+    streak_day = date.today()
+    if streak_day.isoformat() not in sessions_by_day:
+        streak_day -= timedelta(days=1)
+    workout_streak = 0
+    while streak_day.isoformat() in sessions_by_day:
+        workout_streak += 1
+        streak_day -= timedelta(days=1)
+
+    return render_template(
+        "prof.html",
+        user=user[0],
+        prs=prs,
+        calories_goal=calories_goal,
+        workout_streak=workout_streak,
+    )
 
 
 @app.route("/profile/weight", methods=["POST"])

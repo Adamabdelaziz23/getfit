@@ -88,17 +88,12 @@
     <h3 class="text-warning mb-0">Weekly Routines</h3>
     <button type="button" class="btn btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#addRoutineModal">+ Add Routine</button>
 </div>
-<form method="post" action="{{ url_for('log_workout') }}" class="row g-2 align-items-end border border-secondary rounded p-3 mb-4">
-    <div class="col-12 col-md-4">
-        <label for="workoutName" class="form-label">Log completed workout</label>
-        <input type="text" id="workoutName" name="workout_name" class="form-control bg-secondary text-white border-0" maxlength="80" placeholder="Workout name" required>
+
     </div>
     <div class="col-12 col-md">
-        <label for="workoutNotes" class="form-label">Notes <span class="text-secondary">(optional)</span></label>
-        <input type="text" id="workoutNotes" name="notes" class="form-control bg-secondary text-white border-0" maxlength="500" placeholder="Exercises, sets, or a short note">
-    </div>
+
     <div class="col-12 col-md-auto">
-        <button type="submit" class="btn btn-outline-warning fw-bold w-100">Log Workout</button>
+       
     </div>
 </form>
 <p class="small text-secondary mb-3">Percentages are starting guides. Use controlled form and choose a load that suits your ability.</p>

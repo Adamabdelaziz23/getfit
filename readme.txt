@@ -18,8 +18,9 @@ Features
   user's pages private while they use the app.
 - Home: Provides a starting point for the main fitness tools and helps users
   navigate to workouts, nutrition, and their profile.
-- Profile: Lets users update their name, height, weight, and fitness goal, and
-  upload a profile picture to personalize their account.
+- Profile: Lets users update their name, height, weight, and fitness goal,
+  upload a profile picture, view their calorie target and workout streak, and
+  jump to the dashboard, photo memorial, progress tracker, or nutrition page.
 - Personal records: Stores bench press, squat, and deadlift bests per user so
   strength gains can be recorded and revisited.
 - Workouts: Offers preset weekly programs and lets users build their own
