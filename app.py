@@ -99,6 +99,27 @@ db.execute(
            FOREIGN KEY (user_id) REFERENCES users(id)
        )"""
 )
+db.execute(
+    """CREATE TABLE IF NOT EXISTS pr_history (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           lift TEXT NOT NULL CHECK (lift IN ('bench', 'squat', 'deadlift')),
+           weight_kg REAL NOT NULL,
+           achieved_on TEXT NOT NULL,
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
+db.execute(
+    """CREATE TABLE IF NOT EXISTS photo_memorial (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           user_id INTEGER NOT NULL,
+           before_filename TEXT NOT NULL,
+           before_date TEXT NOT NULL,
+           after_filename TEXT,
+           after_date TEXT,
+           FOREIGN KEY (user_id) REFERENCES users(id)
+       )"""
+)
 
 
 def save_weight_reading(user_id, weight, measured_on=None):
@@ -125,6 +146,28 @@ def parse_optional_number(form, field, label, minimum, maximum):
     if not math.isfinite(value) or not minimum <= value <= maximum:
         raise ValueError(f"{label.capitalize()} must be between {minimum:g} and {maximum:g}.")
     return value
+
+
+def validate_progress_photo(upload):
+    if upload is None or not upload.filename:
+        raise ValueError("Choose a photo to upload.")
+
+    extension = os.path.splitext(secure_filename(upload.filename))[1].lower()
+    if extension not in {".png", ".jpg", ".jpeg", ".webp"}:
+        raise ValueError("Upload a PNG, JPEG, or WebP photo.")
+
+    header = upload.stream.read(12)
+    upload.stream.seek(0)
+    if extension == ".png":
+        valid_image = header.startswith(b"\x89PNG\r\n\x1a\n")
+    elif extension in {".jpg", ".jpeg"}:
+        valid_image = header.startswith(b"\xff\xd8\xff")
+    else:
+        valid_image = header[:4] == b"RIFF" and header[8:12] == b"WEBP"
+    if not valid_image:
+        raise ValueError("That file does not appear to be a valid image.")
+
+    return f"{uuid4().hex}{extension}"
 
 
 # AI assistance: GitHub Copilot helped structure the weekly workout programs.
@@ -309,9 +352,21 @@ def dashboard():
            ORDER BY measured_on""",
         user_id,
     )
+    week_weight_rows = db.execute(
+        """SELECT measured_on, weight FROM weight_log
+           WHERE user_id = ?
+             AND measured_on BETWEEN date('now', 'localtime', '-6 days')
+                                  AND date('now', 'localtime')
+           ORDER BY measured_on""",
+        user_id,
+    )
     weight_readings = [
         {"date": date.fromisoformat(row["measured_on"]), "weight": float(row["weight"])}
         for row in weight_rows
+    ]
+    week_weight_readings = [
+        {"date": date.fromisoformat(row["measured_on"]), "weight": float(row["weight"])}
+        for row in week_weight_rows
     ]
     chart_start = today - timedelta(days=29)
     chart_points = []
@@ -341,6 +396,16 @@ def dashboard():
         if len(weight_readings) > 1:
             delta = weight_readings[-1]["weight"] - weight_readings[0]["weight"]
             weight_change = f"{delta:+.1f} kg over the last 30 days"
+
+    weight_week_change = "Add another weigh-in this week to see your change"
+    if len(week_weight_readings) > 1:
+        weekly_delta = week_weight_readings[-1]["weight"] - week_weight_readings[0]["weight"]
+        if weekly_delta > 0:
+            weight_week_change = f"Up {weekly_delta:.1f} kg over the last week"
+        elif weekly_delta < 0:
+            weight_week_change = f"Down {abs(weekly_delta):.1f} kg over the last week"
+        else:
+            weight_week_change = "No change over the last week"
 
     chart_dates = [
         {
@@ -375,23 +440,69 @@ def dashboard():
             user_id,
         )[0]
     measurement_rows = db.execute(
-        "SELECT * FROM body_measurement_log WHERE user_id = ? ORDER BY measured_on DESC LIMIT 1",
+        "SELECT * FROM body_measurement_log WHERE user_id = ? ORDER BY measured_on",
         user_id,
     )
-    body_measurement = measurement_rows[0] if measurement_rows else {}
+    body_measurement = measurement_rows[-1] if measurement_rows else {}
     measurement_fields = (
+        ("body_fat", "Body fat", "%"),
         ("chest", "Chest", "cm"),
         ("waist", "Waist", "cm"),
         ("arms", "Arms", "cm"),
         ("thighs", "Thighs", "cm"),
     )
-    measurements = [
-        {"name": label, "value": body_measurement[field], "unit": unit}
-        for field, label, unit in measurement_fields
-        if body_measurement.get(field) is not None
-    ]
-    progress_photos = db.execute(
-        "SELECT filename, caption, photo_date FROM progress_photo WHERE user_id = ? ORDER BY photo_date DESC, id DESC LIMIT 2",
+    measurement_charts = []
+    for field, label, unit in measurement_fields:
+        readings = [
+            {"date": date.fromisoformat(row["measured_on"]), "value": float(row[field])}
+            for row in measurement_rows
+            if row[field] is not None
+        ]
+        if not readings:
+            continue
+        min_value = min(reading["value"] for reading in readings)
+        max_value = max(reading["value"] for reading in readings)
+        span_days = max((readings[-1]["date"] - readings[0]["date"]).days, 1)
+        points = [
+            {
+                "x": round(8 + (reading["date"] - readings[0]["date"]).days / span_days * 164, 1),
+                "y": round(
+                    42 - ((reading["value"] - min_value) / (max_value - min_value) * 32)
+                    if max_value != min_value else 26,
+                    1,
+                ),
+                "value": reading["value"],
+                "date": reading["date"].isoformat(),
+            }
+            for reading in readings
+        ]
+        measurement_charts.append({
+            "name": label,
+            "unit": unit,
+            "latest": readings[-1]["value"],
+            "latest_date": readings[-1]["date"].isoformat(),
+            "min": min_value,
+            "max": max_value,
+            "points": points,
+            "line": " ".join(f"{point['x']},{point['y']}" for point in points),
+        })
+    latest_body_fat = next(
+        (chart["latest"] for chart in measurement_charts if chart["name"] == "Body fat"),
+        None,
+    )
+    latest_body_fat_date = next(
+        (chart["latest_date"] for chart in measurement_charts if chart["name"] == "Body fat"),
+        None,
+    )
+    memorial_photos = db.execute(
+        """SELECT id, before_filename, before_date, after_filename, after_date
+           FROM photo_memorial WHERE user_id = ?
+           ORDER BY before_date DESC, id DESC LIMIT 3""",
+        user_id,
+    )
+    pr_history = db.execute(
+        """SELECT lift, weight_kg, achieved_on FROM pr_history
+           WHERE user_id = ? ORDER BY achieved_on DESC, id DESC LIMIT 5""",
         user_id,
     )
 
@@ -399,7 +510,7 @@ def dashboard():
     pr_values = records[0] if records else {"bench": None, "squat": None, "deadlift": None}
     lift_labels = {"bench": "Bench press", "squat": "Squat", "deadlift": "Deadlift"}
     personal_records = [
-        {"name": lift_labels[key], "weight": pr_values[key]}
+        {"name": lift_labels[key], "weight": pr_values[key], "icon": key}
         for key in lift_labels
     ]
     saved_lifts = [record for record in personal_records if record["weight"] is not None]
@@ -424,14 +535,17 @@ def dashboard():
         current_weight=current_weight,
         weight_reading_count=len(weight_readings),
         weight_change=weight_change,
+        weight_week_change=weight_week_change,
         weight_chart_points=chart_points,
         weight_chart_ticks=chart_ticks,
         weight_chart_line=chart_line,
         weight_chart_dates=chart_dates,
-        body_fat=body_measurement.get("body_fat"),
-        measurements=measurements,
+        body_fat=latest_body_fat,
+        body_fat_date=latest_body_fat_date,
+        measurement_charts=measurement_charts,
         measurements_date=body_measurement.get("measured_on"),
-        progress_photos=progress_photos,
+        memorial_photos=memorial_photos,
+        pr_history=pr_history,
         personal_records=personal_records,
         best_lift=best_lift,
         food_totals=food_totals,
@@ -445,6 +559,197 @@ def dashboard():
         active_days_count=active_days_count,
         recent_workouts=recent_workouts,
     )
+
+
+@app.route("/dashboard/history")
+@login_required
+def dashboard_history():
+    """Show dated training and calorie history."""
+    user_id = session.get("user_id")
+    today = date.today()
+    period = request.args.get("period", "all")
+    if period not in {"all", "week"}:
+        period = "all"
+    start_date = (today - timedelta(days=6)).isoformat() if period == "week" else None
+
+    history_by_date = {}
+
+    if start_date:
+        session_rows = db.execute(
+            """SELECT id, workout_name, notes, session_date, completed_at
+               FROM workout_log
+               WHERE user_id = ? AND session_date BETWEEN ? AND ?
+               ORDER BY session_date DESC, completed_at DESC, id DESC""",
+            user_id, start_date, today.isoformat(),
+        )
+        nutrition_rows = db.execute(
+            """SELECT log_date AS entry_date, calories
+               FROM daily_nutrition
+               WHERE user_id = ? AND log_date BETWEEN ? AND ?
+               ORDER BY log_date DESC""",
+            user_id, start_date, today.isoformat(),
+        )
+        food_rows = db.execute(
+            """SELECT date(logged_at) AS entry_date, SUM(calories) AS calories
+               FROM food_log
+               WHERE user_id = ? AND date(logged_at) BETWEEN ? AND ?
+               GROUP BY date(logged_at)""",
+            user_id, start_date, today.isoformat(),
+        )
+    else:
+        session_rows = db.execute(
+            """SELECT id, workout_name, notes, session_date, completed_at
+               FROM workout_log
+               WHERE user_id = ?
+               ORDER BY session_date DESC, completed_at DESC, id DESC""",
+            user_id,
+        )
+        nutrition_rows = db.execute(
+            """SELECT log_date AS entry_date, calories
+               FROM daily_nutrition WHERE user_id = ? ORDER BY log_date DESC""",
+            user_id,
+        )
+        food_rows = db.execute(
+            """SELECT date(logged_at) AS entry_date, SUM(calories) AS calories
+               FROM food_log WHERE user_id = ?
+               GROUP BY date(logged_at)""",
+            user_id,
+        )
+
+    for row in food_rows:
+        history_by_date.setdefault(row["entry_date"], {
+            "date": row["entry_date"],
+            "calories": row["calories"],
+            "sessions": [],
+        })
+    for row in nutrition_rows:
+        entry = history_by_date.setdefault(row["entry_date"], {
+            "date": row["entry_date"],
+            "calories": None,
+            "sessions": [],
+        })
+        entry["calories"] = row["calories"]
+    for row in session_rows:
+        entry = history_by_date.setdefault(row["session_date"], {
+            "date": row["session_date"],
+            "calories": None,
+            "sessions": [],
+        })
+        exercises = db.execute(
+            """SELECT exercise_name, sets, reps FROM exercise_log
+               WHERE session_id = ? ORDER BY id""",
+            row["id"],
+        )
+        details = [
+            f"{exercise['exercise_name']} · {exercise['sets']} sets × {exercise['reps']} reps"
+            for exercise in exercises
+        ]
+        entry["sessions"].append({
+            "name": row["workout_name"],
+            "details": " · ".join(details) or row["notes"] or "Workout completed",
+        })
+
+    history = [
+        history_by_date[entry_date]
+        for entry_date in sorted(history_by_date, reverse=True)
+    ]
+    return render_template(
+        "dashboard_history.html",
+        history=history,
+        period=period,
+        start_date=start_date,
+        end_date=today.isoformat() if start_date else None,
+    )
+
+
+@app.route("/dashboard/pr-history")
+@login_required
+def personal_record_history():
+    """Show dated personal-record improvements."""
+    records = db.execute(
+        """SELECT lift, weight_kg, achieved_on FROM pr_history
+           WHERE user_id = ? ORDER BY achieved_on DESC, id DESC""",
+        session.get("user_id"),
+    )
+    lift_labels = {"bench": "Bench press", "squat": "Squat", "deadlift": "Deadlift"}
+    return render_template(
+        "pr_history.html",
+        records=[
+            {**record, "name": lift_labels[record["lift"]]}
+            for record in records
+        ],
+    )
+
+
+@app.route("/memorial", methods=["GET", "POST"])
+@login_required
+def photo_memorial():
+    """Create and view before-and-after photo pairs."""
+    user_id = session.get("user_id")
+    if request.method == "POST":
+        try:
+            upload = request.files.get("before_photo")
+            filename = validate_progress_photo(upload)
+        except ValueError as error:
+            flash(str(error))
+            return redirect("/memorial")
+
+        upload.save(os.path.join(app.config["PROGRESS_UPLOAD_FOLDER"], filename))
+        db.execute(
+            """INSERT INTO photo_memorial (user_id, before_filename, before_date)
+               VALUES (?, ?, ?)""",
+            user_id,
+            filename,
+            date.today().isoformat(),
+        )
+        flash("Before photo saved. Add the after photo whenever you are ready.")
+        return redirect("/memorial")
+
+    memorial_photos = db.execute(
+        """SELECT id, before_filename, before_date, after_filename, after_date
+           FROM photo_memorial WHERE user_id = ?
+           ORDER BY before_date DESC, id DESC""",
+        user_id,
+    )
+    return render_template("memorial.html", memorial_photos=memorial_photos)
+
+
+@app.route("/memorial/<int:memorial_id>/after", methods=["POST"])
+@login_required
+def add_memorial_after_photo(memorial_id):
+    """Add an after photo to one of the user's existing memorial entries."""
+    user_id = session.get("user_id")
+    entries = db.execute(
+        """SELECT after_filename FROM photo_memorial
+           WHERE id = ? AND user_id = ?""",
+        memorial_id,
+        user_id,
+    )
+    if not entries:
+        flash("That memorial entry could not be found.")
+        return redirect("/memorial")
+    if entries[0]["after_filename"]:
+        flash("An after photo has already been saved for this entry.")
+        return redirect("/memorial")
+
+    try:
+        upload = request.files.get("after_photo")
+        filename = validate_progress_photo(upload)
+    except ValueError as error:
+        flash(str(error))
+        return redirect("/memorial")
+
+    upload.save(os.path.join(app.config["PROGRESS_UPLOAD_FOLDER"], filename))
+    db.execute(
+        """UPDATE photo_memorial SET after_filename = ?, after_date = ?
+           WHERE id = ? AND user_id = ? AND after_filename IS NULL""",
+        filename,
+        date.today().isoformat(),
+        memorial_id,
+        user_id,
+    )
+    flash("After photo saved.")
+    return redirect("/memorial")
 
 
 @app.route("/calorie-target", methods=["POST"])
@@ -688,6 +993,15 @@ def track_progress():
                 values["deadlift"],
             )
             pr_updated = True
+        if pr_updated:
+            db.execute(
+                """INSERT INTO pr_history (user_id, lift, weight_kg, achieved_on)
+                   VALUES (?, ?, ?, ?)""",
+                user_id,
+                pr_exercise,
+                pr_weight,
+                entry_date,
+            )
 
     flash("Daily progress saved." if not pr_exercise or pr_updated else "Progress saved. The saved personal record is already higher.")
     return redirect(f"/track?date={entry_date}")
@@ -849,7 +1163,10 @@ def update_pr():
     if exercise not in {"bench", "squat", "deadlift"} or weight is None or weight <= 0:
         return redirect("/profile")
 
-    records = db.execute("SELECT id FROM pr WHERE user_id = ? ORDER BY id LIMIT 1", user_id)
+    records = db.execute(
+        "SELECT id, bench, squat, deadlift FROM pr WHERE user_id = ? ORDER BY id LIMIT 1",
+        user_id,
+    )
     if records:
         db.execute(f"UPDATE pr SET {exercise} = ? WHERE id = ?", weight, records[0]["id"])
     else:
@@ -862,6 +1179,14 @@ def update_pr():
             values["squat"],
             values["deadlift"],
         )
+    db.execute(
+        """INSERT INTO pr_history (user_id, lift, weight_kg, achieved_on)
+           VALUES (?, ?, ?, ?)""",
+        user_id,
+        exercise,
+        weight,
+        date.today().isoformat(),
+    )
     return redirect("/profile")
 
 

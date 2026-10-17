@@ -35,8 +35,11 @@ Features
 - Progress dashboard: Brings weight and strength trends, workout activity,
   body measurements, a photo comparison, and nutrition goals into one view.
   It shows saved personal records, detailed session activity, a 30-day weight
-  graph, daily nutrition, body measurements, and saved progress photos. Set
-  the daily calorie target directly from the Nutrition & goals dashboard card.
+  graph with a weekly change, dated workout and calorie history with a last
+  seven days filter, dated PR history, and graphs for saved body measurements.
+  Set the daily calorie target directly from the Nutrition & goals dashboard
+  card. The photo memorial pairs a dated before photo with an after photo when
+  it is added later.
 
 Technology and files
 --------------------
@@ -44,8 +47,9 @@ Technology and files
   application and its user-specific data.
 - Bootstrap 5, Jinja templates, CSS, and JavaScript provide the interface.
 - app.py contains the routes, login protection, and application behavior.
-- templates/ contains the pages; dash.html is the progress dashboard and
-  track.html is the daily tracking form.
+- templates/ contains the pages; dash.html is the progress dashboard,
+  dashboard_history.html and pr_history.html show dated histories, memorial.html
+  manages photo pairs, and track.html is the daily tracking form.
 - static/ contains styles, scripts, profile pictures, and progress photos.
 - sql.txt documents the database schema and migration steps.
 - getfit.db is the local database. Do not commit it if it contains personal
@@ -86,8 +90,5 @@ Maintenance
 -----------
 Update this prototype after feature or setup changes. Check git status before
 committing so unrelated work and local user data are not included.
-
-
-
 
 in the dashboard page apply the following

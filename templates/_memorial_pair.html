@@ -1,0 +1,18 @@
+<div class="memorial-pair">
+    <div class="memorial-photo memorial-before">
+        <div class="memorial-photo-heading"><strong>BEFORE</strong><time datetime="{{ pair.before_date }}">{{ pair.before_date }}</time></div>
+        <img src="{{ url_for('static', filename='uploads/progress/' ~ pair.before_filename) }}" alt="Before progress photo uploaded {{ pair.before_date }}">
+    </div>
+    <div class="memorial-photo memorial-after">
+        <div class="memorial-photo-heading"><strong>AFTER</strong>{% if pair.after_date %}<time datetime="{{ pair.after_date }}">{{ pair.after_date }}</time>{% else %}<span>Not added yet</span>{% endif %}</div>
+        {% if pair.after_filename %}
+            <img src="{{ url_for('static', filename='uploads/progress/' ~ pair.after_filename) }}" alt="After progress photo uploaded {{ pair.after_date }}">
+        {% else %}
+            <div class="memorial-photo-empty">Your after photo will appear here</div>
+        {% endif %}
+    </div>
+</div>
+<div class="memorial-directions" aria-label="Compare the before and after photos">
+    <span>BEFORE</span><span class="memorial-arrow memorial-arrow-after">AFTER <b aria-hidden="true">→</b></span>
+    <span class="memorial-arrow memorial-arrow-before"><b aria-hidden="true">←</b> BEFORE</span><span>AFTER</span>
+</div>

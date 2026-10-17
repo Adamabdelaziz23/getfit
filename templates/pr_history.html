@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block title %}Personal Record History | GetFit{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <section class="dashboard-heading">
+        <div>
+            <p class="dashboard-eyebrow">STRENGTH</p>
+            <h2 class="dashboard-title">Personal record history</h2>
+            <p class="dashboard-subtitle">PR improvements, ordered by date achieved.</p>
+        </div>
+        <a class="btn btn-outline-warning" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+    </section>
+
+    <section class="history-day-list" aria-label="Personal records by date">
+        {% for record in records %}
+            <article class="dashboard-card history-pr-row">
+                <div>
+                    <strong>{{ record.name }}</strong>
+                    <time datetime="{{ record.achieved_on }}">{{ record.achieved_on }}</time>
+                </div>
+                <strong class="history-calories">{{ record.weight_kg|round(1) }} kg</strong>
+            </article>
+        {% else %}
+            <article class="dashboard-card">
+                <p class="dashboard-note mb-0">Dated PR history will appear here when you save a new best lift. Existing records without dates are not assigned guessed dates.</p>
+            </article>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

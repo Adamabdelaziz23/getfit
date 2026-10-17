@@ -15,7 +15,13 @@
             <h2 class="dashboard-title">Progress dashboard</h2>
             <p class="dashboard-subtitle">Small steps. Stronger every week.</p>
         </div>
-        <div class="dashboard-period">Current saved data</div>
+        <div class="dashboard-heading-actions">
+            <a class="dashboard-history-link" href="{{ url_for('dashboard_history') }}" aria-label="View training and calorie history" title="History">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8.28"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+                <span>History</span>
+            </a>
+            <div class="dashboard-period">Current saved data</div>
+        </div>
     </section>
 
     <section class="dashboard-summary" aria-label="Progress summary">
@@ -29,6 +35,7 @@
         <article class="dashboard-card">
             <div class="card-heading"><div><p class="card-kicker">BODY WEIGHT</p><h3>Weight trend</h3></div><span class="card-period">Last 30 days</span></div>
             <div class="weight-reading"><strong>{{ current_weight if current_weight is not none else "—" }} <small>{% if current_weight is not none %}kg{% endif %}</small></strong><span>{{ weight_change }}</span></div>
+            <p class="weight-week-change">{{ weight_week_change }}</p>
             {% if weight_chart_points %}
                 <div class="chart-wrap">
                     <svg class="weight-chart" viewBox="0 0 700 220" role="img" aria-labelledby="weight-title weight-description" preserveAspectRatio="none">
@@ -46,11 +53,33 @@
         </article>
 
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">STRENGTH</p><h3>Personal records</h3></div></div>
-            <div class="pr-list">
-                {% for record in personal_records %}<div class="pr-row"><div class="pr-name"><span class="pr-dot {{ record.name|lower|replace(' ', '-') }}-dot"></span><span>{{ record.name }}<small>Current saved record</small></span></div><div class="pr-value"><strong>{{ record.weight if record.weight is not none else "—" }}</strong>{% if record.weight is not none %}<small>kg</small>{% endif %}</div></div>{% endfor %}
+            <div class="card-heading">
+                <div><p class="card-kicker">STRENGTH</p><h3>Personal records</h3></div>
+                <a class="dashboard-history-link dashboard-history-link-small" href="{{ url_for('personal_record_history') }}" aria-label="View personal record history by date" title="PR history">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8.28"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+                    <span>History</span>
+                </a>
             </div>
-            <p class="dashboard-note">Record history is not stored, so monthly changes are unavailable.</p>
+            <div class="pr-list">
+                {% for record in personal_records %}
+                    <div class="pr-row">
+                        <div class="pr-name">
+                            <span class="pr-icon pr-icon-{{ record.icon }}" aria-hidden="true">
+                                {% if record.icon == "bench" %}
+                                    <svg viewBox="0 0 32 32"><path d="M5 11h22M8 7v9M24 7v9M5 20h22M9 18v5M23 18v5M12 20v5M20 20v5"/></svg>
+                                {% elif record.icon == "squat" %}
+                                    <svg viewBox="0 0 32 32"><circle cx="16" cy="6" r="2.5"/><path d="m14 10-4 6 5 3-3 7m2-16 6 5 4 1m-14-5-5-3m10 11 7 6m2-12 4-3"/></svg>
+                                {% else %}
+                                    <svg viewBox="0 0 32 32"><path d="M4 15h24M7 11v8M11 12v6M21 12v6M25 11v8M9 23h14M12 23l-2 4m10-4 2 4"/></svg>
+                                {% endif %}
+                            </span>
+                            <span>{{ record.name }}<small>Current saved record</small></span>
+                        </div>
+                        <div class="pr-value"><strong>{{ record.weight if record.weight is not none else "—" }}</strong>{% if record.weight is not none %}<small>kg</small>{% endif %}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if not pr_history %}<p class="dashboard-note">Dated PR history will appear here after your next record update.</p>{% endif %}
         </article>
     </section>
 
@@ -62,7 +91,7 @@
                 {% for day in activity_days %}<span class="streak-cell{% if day.sessions %} is-active{% endif %}{% if day.sessions > 1 %} is-bright{% endif %}" title="{{ day.label }}: {{ day.sessions }} sessions"></span>{% endfor %}
             </div>
             <div class="streak-legend"><span>Less</span><i></i><i></i><i></i><i></i><span>More</span></div>
-            <div class="recent-heading"><strong>Recent workouts</strong><a href="{{ url_for('workouts') }}">Log a session</a></div>
+            <div class="recent-heading"><strong>Recent workouts</strong><a href="{{ url_for('track_progress') }}">Log a session</a></div>
             <div class="workout-list">
                 {% for workout in recent_workouts %}
                     <div class="workout-row"><span class="workout-symbol" aria-hidden="true">↗</span><div class="workout-info"><strong>{{ workout.name }}</strong><span>{{ workout.details }}</span></div><div class="workout-meta"><strong>{{ workout.volume|round|int }} kg</strong><span>{{ workout.date }}</span></div></div>
@@ -77,33 +106,39 @@
             {% if body_fat is not none %}
                 <div class="body-composition">
                     <div class="body-fat-ring" role="img" aria-label="Body fat {{ body_fat }} percent" style="background: conic-gradient(var(--dashboard-gold) 0 {{ body_fat }}%, rgba(255, 255, 255, 0.09) {{ body_fat }}% 100%)"><div><strong>{{ body_fat }}%</strong><span>body fat</span></div></div>
-                    <div class="body-composition-note"><strong>Latest check-in</strong><span>Body-fat percentage recorded {{ measurements_date }}.</span></div>
+                    <div class="body-composition-note"><strong>Latest check-in</strong><span>Body-fat percentage recorded {{ body_fat_date }}.</span></div>
                 </div>
             {% else %}
                 <p class="dashboard-note">Log a body-fat check-in to see body composition here.</p>
             {% endif %}
-            <div class="measurement-grid">
-                {% for measurement in measurements %}<div class="measurement-item"><span>{{ measurement.name }}</span><strong>{{ measurement.value }} <small>{{ measurement.unit }}</small></strong></div>{% else %}<p class="dashboard-note">No measurements recorded yet.</p>{% endfor %}
+            <div class="measurement-chart-grid">
+                {% for chart in measurement_charts %}
+                    <div class="measurement-chart">
+                        <div class="measurement-chart-heading"><strong>{{ chart.name }}</strong><span>{{ chart.latest|round(1) }} {{ chart.unit }}</span></div>
+                        <svg viewBox="0 0 180 54" role="img" aria-label="{{ chart.name }} history, from {{ chart.points[0].date }} to {{ chart.points[-1].date }}">
+                            <line x1="5" y1="46" x2="175" y2="46" class="measurement-chart-axis"/>
+                            {% if chart.points|length > 1 %}<polyline points="{{ chart.line }}" class="measurement-chart-line"/>{% endif %}
+                            {% for point in chart.points %}<circle cx="{{ point.x }}" cy="{{ point.y }}" r="3" class="measurement-chart-point"><title>{{ point.date }}: {{ point.value|round(1) }} {{ chart.unit }}</title></circle>{% endfor %}
+                        </svg>
+                        <div class="measurement-chart-range"><span>Low {{ chart.min|round(1) }} {{ chart.unit }}</span><span>High {{ chart.max|round(1) }} {{ chart.unit }}</span></div>
+                        <div class="measurement-chart-dates"><span>{{ chart.points[0].date }}</span><span>{{ chart.points[-1].date }}</span></div>
+                    </div>
+                {% else %}
+                    <p class="dashboard-note">Log body measurements in Track Your Progress to see their trends here.</p>
+                {% endfor %}
             </div>
         </article>
     </section>
 
     <section class="dashboard-grid dashboard-grid-bottom">
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">YOUR JOURNEY</p><h3>Progress photos</h3></div><a class="dashboard-link" href="{{ url_for('track_progress') }}">Add a photo</a></div>
-            {% if progress_photos %}
-                <div class="photo-gallery{% if progress_photos|length == 1 %} has-one-photo{% endif %}">
-                    {% for photo in progress_photos %}
-                        <div class="progress-photo{% if loop.last %} photo-latest{% endif %}">
-                            <img src="{{ url_for('static', filename='uploads/progress/' ~ photo.filename) }}" alt="{{ photo.caption or 'Progress check-in photo' }}">
-                            <span class="photo-date">{{ photo.photo_date }}</span><span class="photo-label">{{ photo.caption or "Check-in" }}</span>
-                        </div>
-                        {% if not loop.last %}<span class="photo-connector" aria-hidden="true">→</span>{% endif %}
-                    {% endfor %}
-                </div>
+            <div class="card-heading"><div><p class="card-kicker">YOUR JOURNEY</p><h3>Progress photo memorial</h3></div><a class="btn btn-sm btn-outline-warning" href="{{ url_for('photo_memorial') }}">Enter the memorial</a></div>
+            {% for pair in memorial_photos %}
+                {% include "_memorial_pair.html" %}
             {% else %}
-                <p class="dashboard-note">No progress photos have been saved yet.</p>
-            {% endif %}
+                <p class="dashboard-note">Save a before photo and add its after photo whenever you are ready.</p>
+            {% endfor %}
+            {% if memorial_photos %}<a class="dashboard-link mt-3 d-inline-block" href="{{ url_for('photo_memorial') }}">View all photo pairs</a>{% endif %}
         </article>
 
         <article class="dashboard-card">

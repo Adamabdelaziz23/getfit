@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block title %}Training & Calorie History | GetFit{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <section class="dashboard-heading">
+        <div>
+            <p class="dashboard-eyebrow">YOUR ACTIVITY</p>
+            <h2 class="dashboard-title">Training & calorie history</h2>
+            <p class="dashboard-subtitle">Sessions and calorie totals, grouped by exact date.</p>
+        </div>
+        <a class="btn btn-outline-warning" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+    </section>
+
+    <nav class="history-filters mb-3" aria-label="History date range">
+        <a class="btn {% if period == 'all' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('dashboard_history', period='all') }}">All history</a>
+        <a class="btn {% if period == 'week' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('dashboard_history', period='week') }}">Last 7 days</a>
+    </nav>
+    {% if period == 'week' %}<p class="dashboard-note mb-3">Showing {{ start_date }} through {{ end_date }}.</p>{% endif %}
+
+    <section class="history-day-list" aria-label="Dated training and calorie entries">
+        {% for day in history %}
+            <article class="dashboard-card history-day">
+                <header class="history-day-heading">
+                    <h3>{{ day.date }}</h3>
+                    {% if day.calories is not none %}<span class="history-calories">{{ "{:,}".format(day.calories|round|int) }} kcal</span>{% endif %}
+                </header>
+                {% if day.sessions %}
+                    <div class="history-session-list">
+                        {% for session in day.sessions %}
+                            <div class="history-session">
+                                <strong>{{ session.name }}</strong>
+                                <span>{{ session.details }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="dashboard-note mb-0">No training sessions logged on this date.</p>
+                {% endif %}
+                {% if day.calories is none %}<p class="dashboard-note mb-0">No calorie total logged on this date.</p>{% endif %}
+            </article>
+        {% else %}
+            <article class="dashboard-card">
+                <p class="dashboard-note mb-0">
+                    {% if period == 'week' %}No training sessions or calorie entries in the last 7 days.{% else %}No training sessions or calorie entries have been logged yet.{% endif %}
+                </p>
+            </article>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

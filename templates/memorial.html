@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+{% block title %}Photo Memorial | GetFit{% endblock %}
+{% block content %}
+<div class="dashboard-page">
+    <section class="dashboard-heading">
+        <div>
+            <p class="dashboard-eyebrow">YOUR JOURNEY</p>
+            <h2 class="dashboard-title">Photo memorial</h2>
+            <p class="dashboard-subtitle">Save a before photo now and add an after photo when you are ready.</p>
+        </div>
+        <a class="btn btn-outline-warning" href="{{ url_for('dashboard') }}">Back to dashboard</a>
+    </section>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="mb-4" role="status" aria-live="polite">
+                {% for message in messages %}<div class="alert alert-info mb-2">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <section class="dashboard-card memorial-create mb-3">
+        <h3 class="card-heading-title">Start a photo pair</h3>
+        <form method="post" action="{{ url_for('photo_memorial') }}" enctype="multipart/form-data" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label for="beforePhoto" class="form-label">Before photo</label>
+                <input type="file" id="beforePhoto" name="before_photo" class="form-control bg-secondary text-white border-0" accept="image/png,image/jpeg,image/webp" required>
+                <div class="form-text text-light-emphasis">PNG, JPEG, or WebP; up to 5 MB. The upload date is saved automatically.</div>
+            </div>
+            <div class="col-md-4"><button type="submit" class="btn btn-warning fw-bold">Save before photo</button></div>
+        </form>
+    </section>
+
+    <section class="memorial-list" aria-label="Before and after photo pairs">
+        {% for pair in memorial_photos %}
+            <article class="dashboard-card memorial-entry">
+                {% include "_memorial_pair.html" %}
+                {% if not pair.after_filename %}
+                    <form method="post" action="{{ url_for('add_memorial_after_photo', memorial_id=pair.id) }}" enctype="multipart/form-data" class="row g-3 align-items-end memorial-after-form">
+                        <div class="col-md-8">
+                            <label for="afterPhoto{{ pair.id }}" class="form-label">Add the after photo</label>
+                            <input type="file" id="afterPhoto{{ pair.id }}" name="after_photo" class="form-control bg-secondary text-white border-0" accept="image/png,image/jpeg,image/webp" required>
+                            <div class="form-text text-light-emphasis">The date you upload it will be saved automatically.</div>
+                        </div>
+                        <div class="col-md-4"><button type="submit" class="btn btn-outline-info">Save after photo</button></div>
+                    </form>
+                {% endif %}
+            </article>
+        {% else %}
+            <article class="dashboard-card"><p class="dashboard-note mb-0">No photo pairs yet. Add a before photo to start.</p></article>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

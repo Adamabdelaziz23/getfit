@@ -121,3 +121,23 @@ CREATE TABLE weight_log (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+-- 12. Dated personal-record improvements
+CREATE TABLE pr_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    lift TEXT NOT NULL CHECK (lift IN ('bench', 'squat', 'deadlift')),
+    weight_kg REAL NOT NULL,
+    achieved_on TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 13. Paired before-and-after progress photos
+CREATE TABLE photo_memorial (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    before_filename TEXT NOT NULL,
+    before_date TEXT NOT NULL,
+    after_filename TEXT,
+    after_date TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
