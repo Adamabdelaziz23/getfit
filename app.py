@@ -287,6 +287,11 @@ def dashboard():
     """Dashboard page for the gym app."""
     user_id = session.get("user_id")
     today = date.today()
+    weight_period = request.args.get("weight_period", "month")
+    if weight_period not in {"week", "month"}:
+        weight_period = "month"
+    weight_period_days = 7 if weight_period == "week" else 30
+    weight_period_start = today - timedelta(days=weight_period_days - 1)
     workout_day_rows = db.execute(
           """SELECT session_date AS day, COUNT(*) AS sessions
            FROM workout_log
@@ -347,32 +352,23 @@ def dashboard():
     weight_rows = db.execute(
         """SELECT measured_on, weight FROM weight_log
            WHERE user_id = ?
-             AND measured_on BETWEEN date('now', 'localtime', '-29 days')
-                                 AND date('now', 'localtime')
+             AND measured_on BETWEEN ? AND ?
            ORDER BY measured_on""",
         user_id,
-    )
-    week_weight_rows = db.execute(
-        """SELECT measured_on, weight FROM weight_log
-           WHERE user_id = ?
-             AND measured_on BETWEEN date('now', 'localtime', '-6 days')
-                                  AND date('now', 'localtime')
-           ORDER BY measured_on""",
-        user_id,
+        weight_period_start.isoformat(),
+        today.isoformat(),
     )
     weight_readings = [
         {"date": date.fromisoformat(row["measured_on"]), "weight": float(row["weight"])}
         for row in weight_rows
     ]
-    week_weight_readings = [
-        {"date": date.fromisoformat(row["measured_on"]), "weight": float(row["weight"])}
-        for row in week_weight_rows
-    ]
-    chart_start = today - timedelta(days=29)
+    chart_start = weight_period_start
+    chart_span = weight_period_days - 1
     chart_points = []
     chart_ticks = []
     chart_line = ""
-    weight_change = "Log another weigh-in to see your trend"
+    period_label = "last week" if weight_period == "week" else "last month"
+    weight_change = f"Log another weigh-in to see your trend over the {period_label}"
     if weight_readings:
         min_weight = min(reading["weight"] for reading in weight_readings)
         max_weight = max(reading["weight"] for reading in weight_readings)
@@ -384,7 +380,7 @@ def dashboard():
             value = axis_max - axis_range * index / 3
             chart_ticks.append({"y": 35 + index * 50, "label": f"{value:g} kg"})
         for reading in weight_readings:
-            x = 48 + (reading["date"] - chart_start).days / 29 * 636
+            x = 48 + (reading["date"] - chart_start).days / chart_span * 636
             y = 35 + (axis_max - reading["weight"]) / axis_range * 150
             chart_points.append({
                 "x": round(x, 1),
@@ -395,24 +391,19 @@ def dashboard():
         chart_line = " ".join(f"{point['x']},{point['y']}" for point in chart_points)
         if len(weight_readings) > 1:
             delta = weight_readings[-1]["weight"] - weight_readings[0]["weight"]
-            weight_change = f"{delta:+.1f} kg over the last 30 days"
-
-    weight_week_change = "Add another weigh-in this week to see your change"
-    if len(week_weight_readings) > 1:
-        weekly_delta = week_weight_readings[-1]["weight"] - week_weight_readings[0]["weight"]
-        if weekly_delta > 0:
-            weight_week_change = f"Up {weekly_delta:.1f} kg over the last week"
-        elif weekly_delta < 0:
-            weight_week_change = f"Down {abs(weekly_delta):.1f} kg over the last week"
-        else:
-            weight_week_change = "No change over the last week"
+            if delta > 0:
+                weight_change = f"Up {delta:.1f} kg over the {period_label}"
+            elif delta < 0:
+                weight_change = f"Down {abs(delta):.1f} kg over the {period_label}"
+            else:
+                weight_change = f"No change over the {period_label}"
 
     chart_dates = [
         {
-            "x": round(48 + offset / 29 * 636, 1),
+            "x": round(48 + offset / chart_span * 636, 1),
             "label": f"{(chart_start + timedelta(days=offset)).strftime('%b')} {(chart_start + timedelta(days=offset)).day}",
         }
-        for offset in (0, 7, 14, 21, 29)
+        for offset in sorted({0, chart_span // 4, chart_span // 2, chart_span * 3 // 4, chart_span})
     ]
     records = db.execute(
         "SELECT bench, squat, deadlift FROM pr WHERE user_id = ? ORDER BY id LIMIT 1",
@@ -535,7 +526,8 @@ def dashboard():
         current_weight=current_weight,
         weight_reading_count=len(weight_readings),
         weight_change=weight_change,
-        weight_week_change=weight_week_change,
+        weight_period=weight_period,
+        weight_period_label="Last 7 days" if weight_period == "week" else "Last 30 days",
         weight_chart_points=chart_points,
         weight_chart_ticks=chart_ticks,
         weight_chart_line=chart_line,
@@ -786,6 +778,70 @@ def set_calorie_target():
         )
 
     flash("Daily calorie target saved.")
+    return redirect("/dashboard")
+
+
+@app.route("/calorie-intake", methods=["POST"])
+@login_required
+def update_calorie_intake():
+    """Adjust or clear today's calorie total without losing macro totals."""
+    action = request.form.get("action")
+    if action not in {"adjust", "clear"}:
+        flash("Choose whether to adjust or clear today's calorie intake.")
+        return redirect("/dashboard")
+
+    if action == "adjust":
+        calories = request.form.get("calories", "").strip()
+        try:
+            calories = int(calories)
+        except ValueError:
+            flash("Enter a whole-number calorie intake.")
+            return redirect("/dashboard")
+        if not 0 <= calories <= 20000:
+            flash("Calorie intake must be between 0 and 20,000 kcal.")
+            return redirect("/dashboard")
+    else:
+        calories = 0
+
+    user_id = session.get("user_id")
+    nutrition_rows = db.execute(
+        """SELECT protein, carbs, fats FROM daily_nutrition
+           WHERE user_id = ? AND log_date = date('now', 'localtime')""",
+        user_id,
+    )
+    if nutrition_rows:
+        protein = nutrition_rows[0]["protein"] or 0
+        carbs = nutrition_rows[0]["carbs"] or 0
+        fats = nutrition_rows[0]["fats"] or 0
+    else:
+        food_totals = db.execute(
+            """SELECT COALESCE(SUM(protein), 0) AS protein,
+                      COALESCE(SUM(carbs), 0) AS carbs,
+                      COALESCE(SUM(fats), 0) AS fats
+               FROM food_log
+               WHERE user_id = ? AND date(logged_at) = date('now', 'localtime')""",
+            user_id,
+        )[0]
+        protein = food_totals["protein"]
+        carbs = food_totals["carbs"]
+        fats = food_totals["fats"]
+
+    db.execute(
+        """INSERT INTO daily_nutrition (user_id, log_date, calories, protein, carbs, fats)
+           VALUES (?, date('now', 'localtime'), ?, ?, ?, ?)
+           ON CONFLICT(user_id, log_date) DO UPDATE SET
+               calories = excluded.calories,
+               protein = excluded.protein,
+               carbs = excluded.carbs,
+               fats = excluded.fats""",
+        user_id,
+        calories,
+        protein,
+        carbs,
+        fats,
+    )
+
+    flash("Today's calorie intake cleared." if action == "clear" else "Today's calorie intake updated.")
     return redirect("/dashboard")
 
 

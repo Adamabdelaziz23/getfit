@@ -33,13 +33,19 @@
 
     <section class="dashboard-grid dashboard-grid-primary">
         <article class="dashboard-card">
-            <div class="card-heading"><div><p class="card-kicker">BODY WEIGHT</p><h3>Weight trend</h3></div><span class="card-period">Last 30 days</span></div>
+            <div class="card-heading">
+                <div><p class="card-kicker">BODY WEIGHT</p><h3>Weight trend</h3></div>
+                <nav class="weight-period-switch" aria-label="Weight trend period">
+                    <a class="{% if weight_period == 'week' %}is-selected{% endif %}" href="{{ url_for('dashboard', weight_period='week') }}"{% if weight_period == 'week' %} aria-current="true"{% endif %}>Last week</a>
+                    <a class="{% if weight_period == 'month' %}is-selected{% endif %}" href="{{ url_for('dashboard', weight_period='month') }}"{% if weight_period == 'month' %} aria-current="true"{% endif %}>Last month</a>
+                </nav>
+            </div>
+            <span class="card-period">{{ weight_period_label }}</span>
             <div class="weight-reading"><strong>{{ current_weight if current_weight is not none else "—" }} <small>{% if current_weight is not none %}kg{% endif %}</small></strong><span>{{ weight_change }}</span></div>
-            <p class="weight-week-change">{{ weight_week_change }}</p>
             {% if weight_chart_points %}
                 <div class="chart-wrap">
                     <svg class="weight-chart" viewBox="0 0 700 220" role="img" aria-labelledby="weight-title weight-description" preserveAspectRatio="none">
-                        <title id="weight-title">Body weight over the last 30 days</title>
+                        <title id="weight-title">Body weight over {{ weight_period_label|lower }}</title>
                         <desc id="weight-description">Graph of {{ weight_reading_count }} dated weigh-ins.</desc>
                         {% for tick in weight_chart_ticks %}<line x1="42" y1="{{ tick.y }}" x2="690" y2="{{ tick.y }}" class="chart-gridline"/><text x="0" y="{{ tick.y + 4 }}" class="chart-label">{{ tick.label }}</text>{% endfor %}
                         <polyline points="{{ weight_chart_line }}" class="chart-line"/>
@@ -153,6 +159,13 @@
                 <div class="calorie-copy"><span>Calories</span><strong>{{ food_totals.calories|round|int }} <small>{% if calories_goal %}/ {{ calories_goal|round|int }} kcal{% else %}kcal{% endif %}</small></strong><span class="calorie-remaining">{% if calories_remaining is not none %}{{ calories_remaining|round|int }} kcal remaining{% else %}Set a calorie target to see what remains{% endif %}</span></div>
                 <div class="calorie-progress" role="progressbar" aria-label="Calories consumed" aria-valuenow="{{ calorie_percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ calorie_percent }}%"></span></div>
             </div>
+            <div class="calorie-intake-actions">
+                <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="modal" data-bs-target="#calorieIntakeModal">Adjust intake</button>
+                <form method="post" action="{{ url_for('update_calorie_intake') }}" onsubmit="return confirm(&quot;Clear today's calorie total? This will not delete food log entries.&quot;);">
+                    <input type="hidden" name="action" value="clear">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Clear intake</button>
+                </form>
+            </div>
             <div class="macro-list">
                 {% for macro in macros %}
                     <div class="macro-row"><div class="macro-label"><span class="macro-dot {{ macro.class }}"></span><strong>{{ macro.name }}</strong><span>{{ macro.value|round|int }} / {{ macro.goal|round|int }}{{ macro.unit }}</span></div><div class="macro-progress {{ macro.class }}" role="progressbar" aria-label="{{ macro.name }} consumed" aria-valuenow="{{ macro.percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ macro.percent }}%"></span></div></div>
@@ -161,6 +174,32 @@
             {% if not macros %}<p class="dashboard-note">No saved macro targets. Food totals include entries logged today.</p>{% endif %}
         </article>
     </section>
+
+    <div class="modal fade" id="calorieIntakeModal" tabindex="-1" aria-labelledby="calorieIntakeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-warning">
+                <form method="post" action="{{ url_for('update_calorie_intake') }}">
+                    <input type="hidden" name="action" value="adjust">
+                    <div class="modal-header border-secondary">
+                        <h2 class="modal-title fs-5 text-warning" id="calorieIntakeModalLabel">Adjust today's calorie intake</h2>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="calorieIntakeInput" class="form-label">Calories consumed today</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control bg-secondary text-white border-0" id="calorieIntakeInput" name="calories" min="0" max="20000" step="1" value="{{ food_totals.calories|round|int }}" required>
+                            <span class="input-group-text">kcal</span>
+                        </div>
+                        <div class="form-text text-light-emphasis">Enter the corrected daily total from 0 to 20,000 kcal.</div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning fw-bold">Save intake</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="calorieTargetModal" tabindex="-1" aria-labelledby="calorieTargetModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

@@ -1063,6 +1063,14 @@ h1 {
     padding-bottom: 0.9rem;
 }
 
+.calorie-intake-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    padding-top: 0.7rem;
+}
+
 .calorie-copy {
     align-items: baseline;
     display: flex;
@@ -1319,10 +1327,33 @@ h1 {
     width: 15px;
 }
 
-.weight-week-change {
+.weight-period-switch {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--dashboard-border);
+    border-radius: 9px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 0.15rem;
+    padding: 0.18rem;
+}
+
+.weight-period-switch a {
+    border-radius: 7px;
+    color: var(--dashboard-muted);
+    font-size: 0.62rem;
+    padding: 0.35rem 0.48rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.weight-period-switch a:hover,
+.weight-period-switch a:focus-visible {
+    color: #fff;
+}
+
+.weight-period-switch a.is-selected {
+    background: rgba(212, 175, 55, 0.17);
     color: var(--dashboard-gold);
-    font-size: 0.72rem;
-    margin: 0.15rem 0 0.35rem;
 }
 
 .pr-icon {

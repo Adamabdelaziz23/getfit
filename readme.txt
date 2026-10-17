@@ -34,12 +34,12 @@ Features
   and calorie needs to give users a practical daily guide.
 - Progress dashboard: Brings weight and strength trends, workout activity,
   body measurements, a photo comparison, and nutrition goals into one view.
-  It shows saved personal records, detailed session activity, a 30-day weight
-  graph with a weekly change, dated workout and calorie history with a last
+  It shows saved personal records, detailed session activity, a weight graph
+  with selectable weekly or monthly changes, dated workout and calorie history with a last
   seven days filter, dated PR history, and graphs for saved body measurements.
-  Set the daily calorie target directly from the Nutrition & goals dashboard
-  card. The photo memorial pairs a dated before photo with an after photo when
-  it is added later.
+  Set the daily calorie target or adjust or clear today's calorie intake
+  directly from the Nutrition & goals dashboard card. The photo memorial pairs
+  a dated before photo with an after photo when it is added later.
 
 Technology and files
 --------------------
