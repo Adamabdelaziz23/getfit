@@ -3,55 +3,52 @@ GETFIT
 
 README prototype
 ----------------
-This file is a working prototype for a fuller README.md. Keep it up to date as
-features, setup steps, and project status change.
+This short guide describes what GetFit helps users do, how its main features
+work, and how to run the app locally. Keep it current as the project changes.
 
 About
 -----
-GetFit is a Flask and SQLite fitness-tracking app. Users can register and log
-in, edit profile details, upload a profile picture, record bench press, squat,
-and deadlift personal records, view or create weekly workout routines, and
-calculate nutrition targets from estimated maintenance calories.
+GetFit is a Flask fitness-tracking app backed by SQLite. It brings workout
+planning, strength records, profile details, and nutrition estimates together
+so users can review their training and stay focused on their goals.
 
-Current features
-----------------
-- User registration and login with hashed passwords.
-- Session-protected home, nutrition, workout, and profile pages.
-- Profile editing for name, height, weight, and fitness goal.
-- Profile picture uploads: choose a PNG, JPEG, or WebP (up to 5 MB) using the
-    + button overlaid on the avatar; selection uploads automatically.
-- Personal records saved per user for bench press, squat, and deadlift.
-- Workout rest timer supports preset durations and custom minutes/seconds.
-- Nutrition targets update from the existing calorie calculator using 15% cut,
-  maintenance, and 10% bulk targets. Protein is 1.6 g/kg; remaining calories
-  use a 4:3 carb-to-fat split with 4/4/9 kcal/g conversions.
-- Three 7-day preset programs (Push/Pull/Legs, Upper/Lower, and Full Body), each
-    showing high-intensity, high-volume, and average training options per day.
-- Custom weekly routines with seven days and three training-style detail fields
-    per day, saved per user.
-- SQLite database access through the CS50 SQL library.
+Features
+--------
+- Accounts: Register and log in with hashed passwords. A session keeps each
+  user's pages private while they use the app.
+- Home: Provides a starting point for the main fitness tools and helps users
+  navigate to workouts, nutrition, and their profile.
+- Profile: Lets users update their name, height, weight, and fitness goal, and
+  upload a profile picture to personalize their account.
+- Personal records: Stores bench press, squat, and deadlift bests per user so
+  strength gains can be recorded and revisited.
+- Workouts: Offers preset weekly programs and lets users build their own
+  seven-day routine. Training-style options help users choose how to approach
+  each day's exercises. A rest timer supports recovery between sets.
+- Nutrition: Estimates calorie targets for weight loss, maintenance, or muscle
+  gain. Protein and remaining macro targets are calculated from body weight
+  and calorie needs to give users a practical daily guide.
+- Progress dashboard: Brings weight and strength trends, workout activity,
+  body measurements, a photo comparison, and nutrition goals into one view.
+  Current dashboard numbers and charts are sample presentation data; they are
+  not connected to saved user records.
 
-Technology
-----------
-- Python and Flask
-- SQLite and CS50 SQL
-- Flask-Session
-- HTML, CSS, and JavaScript
-- Bootstrap 5 loaded from a CDN
-
-Project files
--------------
-- app.py: Flask routes, authentication, profile updates, PR updates, workout routines, and image uploads.
-- sql.txt: Database schema for new databases and migration reminders for existing ones.
-- getfit.db: Local SQLite database. Do not commit it if it contains real user data.
-- templates/: Jinja templates for the application pages.
-- static/: CSS, JavaScript, and uploaded profile pictures.
-- static/uploads/: Created by the app for profile picture uploads.
+Technology and files
+--------------------
+- Python, Flask, Flask-Session, SQLite, and the CS50 SQL library power the
+  application and its user-specific data.
+- Bootstrap 5, Jinja templates, CSS, and JavaScript provide the interface.
+- app.py contains the routes, login protection, and application behavior.
+- templates/ contains the pages; dash.html is the progress dashboard.
+- static/ contains styles, scripts, and uploaded profile pictures.
+- sql.txt documents the database schema and migration steps.
+- getfit.db is the local database. Do not commit it if it contains personal
+  account data.
 
 Run locally
 -----------
-From the project directory, create and activate a virtual environment, then
-install the required packages:
+From the project directory, create a virtual environment and install the
+dependencies:
 
     python3 -m venv .venv
     source .venv/bin/activate
@@ -61,45 +58,22 @@ Start the development server:
 
     python app.py
 
-Open http://127.0.0.1:5000 in a browser. The app uses getfit.db in the project
-directory. For a new database, create the schema using sql.txt before starting
-the app.
+Visit http://127.0.0.1:5000. For a new database, create its schema from
+sql.txt before starting the app.
 
-Database updates
-----------------
-The users table includes name, fitness_goal, and profile_picture columns.
-sql.txt contains commented ALTER TABLE statements for older databases. After
-merging schema changes, run each required statement once against an existing
-database that does not already have that column. Do not run an ALTER statement
-again if the column is already present. The local getfit.db has been migrated.
-Custom weekly routine details are stored as JSON in the existing workout.details
-column, so the routine editor does not require another schema migration.
+Database and uploads
+--------------------
+The users table includes profile fields such as name, fitness goal, and profile
+picture. sql.txt documents one-time ALTER TABLE statements for older databases;
+only run a migration when the relevant column is missing. Custom weekly routine
+details use JSON in the existing workout.details column.
 
-Do not commit getfit.db when it contains personal account data. Keep database
-schema and migration instructions in source control instead.
-
-Uploads
--------
-Profile pictures are stored in static/uploads with generated filenames. The
-database stores each user's current filename. Uploaded user images are local
-runtime data and should not normally be committed. Use the button embedded in
-the avatar to select and upload a replacement picture.
-
-Development history
--------------------
-Recent commits show these milestones:
-- c06df9c: Profile logic implemented.
-- 7b61358: Ignore generated files.
-- 3af4978: Registration and login implemented.
-- b2d6869: Initial GetFit app commit.
-- 501f917: First commit.
-
-Profile editing, PR persistence, and profile picture upload have since been
-worked on in the current branch. Check git status before committing to see
-which changes are still uncommitted.
+Profile images are limited to PNG, JPEG, or WebP files up to 5 MB. The app
+stores uploaded images in static/uploads under generated filenames and saves
+the current filename for each user in the database. These uploads and any
+database containing user data are local runtime data, not source files.
 
 Maintenance
 -----------
-After each feature or setup change, update this README prototype so it reflects
-the current app. This can later be used to write README.md.
-
+Update this prototype after feature or setup changes. Check git status before
+committing so unrelated work and local user data are not included.

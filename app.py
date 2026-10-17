@@ -120,6 +120,12 @@ def index():
     """Home page for the gym app."""
     return render_template("index.html")
 
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    """Dashboard page for the gym app."""
+    return render_template("dash.html")
+
 
 @app.route("/nutrition")
 @login_required
