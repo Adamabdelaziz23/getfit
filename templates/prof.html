@@ -58,7 +58,10 @@
             <button type="submit" class="btn btn-outline-warning">Record weight</button>
         </div>
     </form>
-    <button class="btn btn-outline-warning btn-sm mx-auto" style="max-width: 150px;" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</button>
+    <div class="profile-actions">
+        <button class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</button>
+        <a class="btn btn-outline-danger btn-sm" href="{{ url_for('logout') }}">Log out</a>
+    </div>
 </div>
 
 <section class="profile-highlights mb-4" aria-label="Daily fitness highlights">

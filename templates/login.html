@@ -6,13 +6,16 @@
         <div class="card auth-card bg-dark border border-warning text-white p-4 shadow">
             <h2 class="text-warning text-center mb-4">Login</h2>
             <form method="post" action="{{ url_for('login') }}">
+                {% if error %}
+                    <div class="alert alert-danger login-error" role="alert">{{ error }}</div>
+                {% endif %}
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control bg-secondary text-white border-0" id="username" name="username" required>
+                    <input type="text" class="form-control bg-secondary text-white border-0{% if login_failed|default(false) %} is-invalid login-field-error{% endif %}" id="username" name="username" value="{{ username|default('') }}" aria-invalid="{{ 'true' if login_failed|default(false) else 'false' }}" required>
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control bg-secondary text-white border-0" id="password" name="password" required>
+                    <input type="password" class="form-control bg-secondary text-white border-0{% if login_failed|default(false) %} is-invalid login-field-error{% endif %}" id="password" name="password" aria-invalid="{{ 'true' if login_failed|default(false) else 'false' }}" required>
                 </div>
                 <button type="submit" class="btn btn-warning w-100 fw-bold">Log In</button>
             </form>

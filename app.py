@@ -1346,8 +1346,13 @@ def login():
         rows = db.execute("SELECT * FROM users WHERE username = ?", username)
         if len(rows) == 1 and check_password_hash(rows[0]["password_hash"], password):
             session["user_id"] = rows[0]["id"]
-        # return redirect("/")
-        return redirect("/")
+            return redirect("/")
+        return render_template(
+            "login.html",
+            error="Username or password incorrect.",
+            login_failed=True,
+            username=username or "",
+        )
 
     return render_template("login.html")
 
