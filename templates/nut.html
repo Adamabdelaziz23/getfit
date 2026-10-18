@@ -1,34 +1,34 @@
 {% extends "layout.html" %}
 {% block title %}Nutrition{% endblock %}
 {% block content %}
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 nutrition-summary">
     <div class="col-md-3">
-        <div class="card bg-dark text-white border-warning p-3 text-center">
+        <div class="card nutrition-stat-card bg-dark text-white border-warning p-3 text-center">
             <h5>Maintenance Calories</h5>
             <p class="fs-4 mb-0"><span id="maintenanceCalories">--</span> kcal/day</p>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-dark text-white border-warning p-3 text-center">
+        <div class="card nutrition-stat-card bg-dark text-white border-warning p-3 text-center">
             <h5>Protein</h5>
             <p class="fs-4 mb-0"><span id="maintenanceProtein">--</span> g/day</p>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-dark text-white border-warning p-3 text-center">
+        <div class="card nutrition-stat-card bg-dark text-white border-warning p-3 text-center">
             <h5>Carbs</h5>
             <p class="fs-4 mb-0"><span id="maintenanceCarbs">--</span> g/day</p>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-dark text-white border-warning p-3 text-center">
+        <div class="card nutrition-stat-card bg-dark text-white border-warning p-3 text-center">
             <h5>Fats</h5>
             <p class="fs-4 mb-0"><span id="maintenanceFats">--</span> g/day</p>
         </div>
     </div>
 </div>
 
-<div class="card bg-dark text-white border-warning p-4 mb-5">
+<div class="card nutrition-calculator bg-dark text-white border-warning p-4 mb-5">
     <h3 class="text-warning text-center mb-3">Calorie Calculator</h3>
     <form id="calcForm" class="row g-3">
         <div class="col-md-3">
@@ -61,7 +61,7 @@
 <p class="text-center text-secondary small mb-3">Targets use 15% below maintenance for cutting and 10% above for bulking. Protein is set to 1.6 g per kg of body weight. Remaining calories are split between carbs and fats at a 4:3 calorie ratio, using 4 kcal/g for protein and carbs and 9 kcal/g for fat. Meal examples are adjustable; change portions to match your targets.</p>
 <div class="row g-4 mb-5">
     <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
+        <div class="card meal-plan-card bg-dark text-white border-secondary h-100 p-3">
             <h4 class="text-warning">Cutting (<span id="cutCalories">--</span> kcal)</h4>
             <p class="text-muted">High protein, moderate fat, lower carbs.</p>
             <p class="small">Protein <span id="cutProtein">--</span> g · Carbs <span id="cutCarbs">--</span> g · Fat <span id="cutFats">--</span> g</p>
@@ -75,7 +75,7 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
+        <div class="card meal-plan-card bg-dark text-white border-secondary h-100 p-3">
             <h4 class="text-warning">Bulking (<span id="bulkCalories">--</span> kcal)</h4>
             <p class="text-muted">High calories, protein, and complex carbs.</p>
             <p class="small">Protein <span id="bulkProtein">--</span> g · Carbs <span id="bulkCarbs">--</span> g · Fat <span id="bulkFats">--</span> g</p>
@@ -89,7 +89,7 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 p-3">
+        <div class="card meal-plan-card bg-dark text-white border-secondary h-100 p-3">
             <h4 class="text-warning">Maintenance (<span id="planMaintenanceCalories">--</span> kcal)</h4>
             <p class="text-muted">Balanced macronutrient distribution.</p>
             <p class="small">Protein <span id="planMaintenanceProtein">--</span> g · Carbs <span id="planMaintenanceCarbs">--</span> g · Fat <span id="planMaintenanceFats">--</span> g</p>

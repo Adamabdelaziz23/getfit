@@ -2770,3 +2770,174 @@ h1 + p + div .btn {
     border-color: #ffc107 !important;
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.3) !important;
 }
+
+.container .form-control,
+.container .form-select {
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.container .form-control:focus,
+.container .form-select:focus {
+    border-color: rgba(230, 200, 91, 0.8) !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.14) !important;
+}
+
+.container .btn:focus-visible,
+.dropdown-menu-custom a:focus-visible {
+    outline: 2px solid #f0d979;
+    outline-offset: 3px;
+}
+
+.home-hero {
+    background:
+        radial-gradient(ellipse at 15% 100%, rgba(178, 117, 231, 0.16), transparent 48%),
+        linear-gradient(115deg, rgba(212, 175, 55, 0.1), rgba(36, 27, 49, 0.88) 48%, rgba(45, 196, 185, 0.08)) !important;
+    border-color: rgba(212, 175, 55, 0.28) !important;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.2);
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.home-hero:hover {
+    border-color: rgba(212, 175, 55, 0.48) !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.26), 0 0 28px rgba(212, 175, 55, 0.08);
+}
+
+.home-feature-card {
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.home-feature-card:hover {
+    border-color: rgba(212, 175, 55, 0.44) !important;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32), 0 0 22px rgba(212, 175, 55, 0.08);
+    transform: translateY(-5px);
+}
+
+.nutrition-stat-card {
+    --nutrition-accent: #e6c85b;
+    border-color: rgba(212, 175, 55, 0.32) !important;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.nutrition-summary > div:nth-child(2) .nutrition-stat-card {
+    --nutrition-accent: #c49bff;
+    border-color: rgba(196, 155, 255, 0.34) !important;
+}
+
+.nutrition-summary > div:nth-child(3) .nutrition-stat-card {
+    --nutrition-accent: #71c7bc;
+    border-color: rgba(113, 199, 188, 0.34) !important;
+}
+
+.nutrition-summary > div:nth-child(4) .nutrition-stat-card {
+    --nutrition-accent: #ffad83;
+    border-color: rgba(255, 173, 131, 0.34) !important;
+}
+
+.nutrition-stat-card h5,
+.nutrition-stat-card p {
+    color: var(--nutrition-accent);
+}
+
+.nutrition-stat-card h5 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.nutrition-stat-card p {
+    font-weight: 650;
+}
+
+.nutrition-stat-card:hover,
+.meal-plan-card:hover {
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32), 0 0 20px rgba(212, 175, 55, 0.09);
+    transform: translateY(-4px);
+}
+
+.nutrition-calculator {
+    background: linear-gradient(145deg, rgba(35, 27, 51, 0.94), rgba(19, 17, 29, 0.96)) !important;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.nutrition-calculator:focus-within {
+    border-color: rgba(212, 175, 55, 0.52) !important;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.3), 0 0 26px rgba(128, 77, 174, 0.1);
+}
+
+.meal-plan-card {
+    border-color: rgba(212, 175, 55, 0.2) !important;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.meal-plan-card h4 {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.17);
+    padding-bottom: 0.65rem;
+}
+
+.meal-plan-card ul li {
+    line-height: 1.5;
+    padding: 0.42rem 0;
+}
+
+.meal-plan-card ul li + li {
+    border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.workout-timer-card {
+    background:
+        radial-gradient(ellipse at 50% 0, rgba(212, 175, 55, 0.1), transparent 56%),
+        linear-gradient(145deg, rgba(35, 27, 51, 0.94), rgba(19, 17, 29, 0.96)) !important;
+    border-color: rgba(212, 175, 55, 0.36) !important;
+}
+
+.profile-overview-card {
+    background: linear-gradient(145deg, rgba(35, 27, 51, 0.95), rgba(19, 17, 29, 0.96)) !important;
+}
+
+.profile-stat {
+    background: rgba(255, 255, 255, 0.035);
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.profile-stat:hover {
+    background: rgba(212, 175, 55, 0.08);
+    border-color: rgba(212, 175, 55, 0.4) !important;
+    transform: translateY(-2px);
+}
+
+.auth-card {
+    background:
+        radial-gradient(ellipse at 100% 0, rgba(212, 175, 55, 0.1), transparent 48%),
+        linear-gradient(145deg, rgba(35, 27, 51, 0.96), rgba(19, 17, 29, 0.97)) !important;
+    border-color: rgba(212, 175, 55, 0.4) !important;
+    transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.auth-card:focus-within {
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32), 0 0 28px rgba(212, 175, 55, 0.1) !important;
+    transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-hero,
+    .home-feature-card,
+    .nutrition-stat-card,
+    .nutrition-calculator,
+    .meal-plan-card,
+    .profile-stat,
+    .auth-card,
+    .container .form-control,
+    .container .form-select,
+    .container .btn {
+        transition: none;
+    }
+
+    .home-feature-card:hover,
+    .nutrition-stat-card:hover,
+    .meal-plan-card:hover,
+    .profile-stat:hover,
+    .auth-card:focus-within {
+        transform: none;
+    }
+}

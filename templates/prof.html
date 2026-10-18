@@ -8,7 +8,7 @@
         </div>
     {% endif %}
 {% endwith %}
-<div class="card bg-dark text-white border-warning p-4 mb-4 text-center">
+<div class="card profile-overview-card bg-dark text-white border-warning p-4 mb-4 text-center">
     <div class="profile-identity">
         <!-- AI assistance: GitHub Copilot helped implement the profile picture picker. -->
         <form id="profilePictureForm" method="post" action="{{ url_for('upload_profile_picture') }}" enctype="multipart/form-data" class="profile-picture-uploader">
@@ -31,19 +31,19 @@
     </div>
     <div class="row g-2 justify-content-center mb-3">
         <div class="col-4 col-md-2">
-            <div class="p-2 border border-secondary rounded">
+            <div class="profile-stat p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Weight</small>
                 <span class="fw-bold" id="userWeight">{{ user.weight if user.weight is not none else "Not set" }}{% if user.weight is not none %} kg{% endif %}</span>
             </div>
         </div>
         <div class="col-4 col-md-2">
-            <div class="p-2 border border-secondary rounded">
+            <div class="profile-stat p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Height</small>
                 <span class="fw-bold" id="userHeight">{{ user.height if user.height is not none else "Not set" }}{% if user.height is not none %} cm{% endif %}</span>
             </div>
         </div>
         <div class="col-4 col-md-2">
-            <div class="p-2 border border-secondary rounded">
+            <div class="profile-stat p-2 border border-secondary rounded">
                 <small class="text-warning d-block">Goal</small>
                 <span class="fw-bold text-warning" id="userGoal">{{ user.fitness_goal or "Not set" }}</span>
             </div>
