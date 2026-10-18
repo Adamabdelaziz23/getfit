@@ -9,6 +9,16 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
+import random
+
+
+with open("quotes.json", "r") as f:
+    QUOTES = json.load(f)
+def get_quote():
+    today_str = date.today().isoformat()
+    date_seed = int(today_str.replace("-", ""))
+    rng = random.Random(date_seed)
+    return rng.choice(QUOTES)
 
 
 db = SQL("sqlite:///getfit.db")
@@ -278,8 +288,10 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
-    """Home page for the gym app."""
-    return render_template("index.html")
+    daily_quote = get_quote()
+    today = date.today().strftime("%A, %B %-d, %Y")
+    return render_template("index.html", daily_quote=daily_quote, today=today)
+    
 
 @app.route("/dashboard")
 @login_required
