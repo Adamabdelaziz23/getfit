@@ -1,32 +1,30 @@
 const menuBtn = document.querySelector('.menu-btn');
 const dropdownMenu = document.getElementById('dropdownmenu');
 
-document.addEventListener("DOMContentLoaded", function() {
-    const menuBtn = document.querySelector(".menu-btn");
-    const dropdownMenu = document.getElementById("dropdownmenu");
+if (menuBtn && dropdownMenu) {
+    const setMenuOpen = (isOpen) => {
+        dropdownMenu.classList.toggle('show', isOpen);
+        menuBtn.setAttribute('aria-expanded', String(isOpen));
+        menuBtn.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+    };
 
-    if (menuBtn && dropdownMenu) {
-        // Hide menu by default on load
-        dropdownMenu.style.display = "none";
+    menuBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        setMenuOpen(menuBtn.getAttribute('aria-expanded') !== 'true');
+    });
 
-        // Toggle menu display on click
-        menuBtn.addEventListener("click", function(event) {
-            event.stopPropagation();
-            if (dropdownMenu.style.display === "none" || dropdownMenu.style.display === "") {
-                dropdownMenu.style.display = "block";
-            } else {
-                dropdownMenu.style.display = "none";
-            }
-        });
+    document.addEventListener('click', (event) => {
+        if (!dropdownMenu.contains(event.target) && !menuBtn.contains(event.target)) {
+            setMenuOpen(false);
+        }
+    });
 
-        // Close menu when clicking anywhere else on the page
-        document.addEventListener("click", function(event) {
-            if (!dropdownMenu.contains(event.target) && !menuBtn.contains(event.target)) {
-                dropdownMenu.style.display = "none";
-            }
-        });
-    }
-});
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            setMenuOpen(false);
+        }
+    });
+}
 
 
 // Calorie Calculator Logic
@@ -177,31 +175,4 @@ if (exerciseRows && addExerciseRow && exerciseRowTemplate) {
             removeButton.closest('[data-exercise-row]').remove();
         }
     });
-}
-/* 3. Make the main feature cards semi-transparent */
-.card {
-    background: rgba(26, 26, 26, 0.45) !important; /* 45% opacity dark background */
-    backdrop-filter: blur(8px); /* Optional: adds a sleek frosted-glass blur effect */
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-/* Hover state for cards */
-.card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-    background: rgba(30, 30, 30, 0.65) !important; /* Slightly more solid on hover */
-    border-color: rgba(255, 193, 7, 0.4) !important;
-}
-
-/* 5. Make the quote card semi-transparent as well */
-.quote-card {
-    background: rgba(30, 30, 30, 0.45) !important;
-    backdrop-filter: blur(8px); /* Frosted-glass blur */
-    border: 1px solid rgba(255, 193, 7, 0.3) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
 }
