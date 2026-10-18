@@ -1986,3 +1986,66 @@ h1 {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+.quote-card {
+    background: linear-gradient(135deg, #1e1e1e 0%, #292929 100%);
+    border: 1px solid rgba(255, 193, 7, 0.3); /* Soft gold/warning border */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Optional: Add a subtle glowing left-border stripe */
+.quote-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: #ffc107;
+}
+
+.card, .feature-box {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover, .feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Styling for all feature cards (Workouts, Nutrition, Profile) */
+.feature-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #222222 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* Hover lift effect for the cards */
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 193, 7, 0.4) !important; /* Soft gold glow on hover */
+}
+
+/* Styling for the daily quote card */
+.quote-card {
+    background: linear-gradient(135deg, #1e1e1e 0%, #292929 100%);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.quote-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: #ffc107;
+}
