@@ -10,6 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 APP_SMOKE_TEST = r"""
 import sqlite3
+from html.parser import HTMLParser
 from pathlib import Path
 
 connection = sqlite3.connect("getfit.db")
@@ -38,6 +39,50 @@ assert login.status_code in (302, 303), login.status_code
 
 dashboard = client.get("/dashboard")
 assert dashboard.status_code == 200, dashboard.status_code
+dashboard_html = dashboard.get_data(as_text=True)
+
+class ModalNestingParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.stack = []
+        self.inside_dashboard = {}
+
+    def handle_starttag(self, tag, attributes):
+        attributes = dict(attributes)
+        modal_id = attributes.get("id")
+        if modal_id in {"calorieTargetModal", "calorieIntakeModal"}:
+            self.inside_dashboard[modal_id] = any(
+                "dashboard-page" in (parent.get("class") or "").split()
+                for _, parent in self.stack
+            )
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}:
+            self.stack.append((tag, attributes))
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index][0] == tag:
+                del self.stack[index:]
+                break
+
+parser = ModalNestingParser()
+parser.feed(dashboard_html)
+assert parser.inside_dashboard == {
+    "calorieTargetModal": False,
+    "calorieIntakeModal": False,
+}, parser.inside_dashboard
+
+target_save = client.post("/calorie-target", data={"calorie_target": "2200"})
+assert target_save.status_code in (302, 303), target_save.status_code
+dashboard_html = client.get("/dashboard").get_data(as_text=True)
+assert "/ 2200 kcal" in dashboard_html
+
+intake_save = client.post(
+    "/calorie-intake",
+    data={"action": "adjust", "calories": "1234"},
+)
+assert intake_save.status_code in (302, 303), intake_save.status_code
+dashboard_html = client.get("/dashboard").get_data(as_text=True)
+assert "1234" in dashboard_html
 """
 
 

@@ -180,7 +180,7 @@ def validate_progress_photo(upload):
     return f"{uuid4().hex}{extension}"
 
 
-# AI assistance: GitHub Copilot helped structure the weekly workout programs.
+
 WEEK_DAYS = (
     {"key": "sunday", "name": "Sunday"},
     {"key": "monday", "name": "Monday"},
@@ -303,7 +303,7 @@ def index():
     daily_quote = get_quote()
     today = date.today().strftime("%A, %B %-d, %Y")
     return render_template("index.html", daily_quote=daily_quote, today=today)
-    
+
 
 @app.route("/dashboard")
 @login_required

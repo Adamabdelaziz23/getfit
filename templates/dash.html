@@ -175,51 +175,52 @@
         </article>
     </section>
 
-    <div class="modal fade" id="calorieIntakeModal" tabindex="-1" aria-labelledby="calorieIntakeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-light border-warning">
-                <form method="post" action="{{ url_for('update_calorie_intake') }}">
-                    <input type="hidden" name="action" value="adjust">
-                    <div class="modal-header border-secondary">
-                        <h2 class="modal-title fs-5 text-warning" id="calorieIntakeModalLabel">Adjust today's calorie intake</h2>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal fade" id="calorieIntakeModal" tabindex="-1" aria-labelledby="calorieIntakeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-warning">
+            <form method="post" action="{{ url_for('update_calorie_intake') }}">
+                <input type="hidden" name="action" value="adjust">
+                <div class="modal-header border-secondary">
+                    <h2 class="modal-title fs-5 text-warning" id="calorieIntakeModalLabel">Adjust today's calorie intake</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="calorieIntakeInput" class="form-label">Calories consumed today</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control bg-secondary text-white border-0" id="calorieIntakeInput" name="calories" min="0" max="20000" step="1" value="{{ food_totals.calories|round|int }}" required>
+                        <span class="input-group-text">kcal</span>
                     </div>
-                    <div class="modal-body">
-                        <label for="calorieIntakeInput" class="form-label">Calories consumed today</label>
-                        <div class="input-group">
-                            <input type="number" class="form-control bg-secondary text-white border-0" id="calorieIntakeInput" name="calories" min="0" max="20000" step="1" value="{{ food_totals.calories|round|int }}" required>
-                            <span class="input-group-text">kcal</span>
-                        </div>
-                        <div class="form-text text-light-emphasis">Enter the corrected daily total from 0 to 20,000 kcal.</div>
-                    </div>
-                    <div class="modal-footer border-secondary">
-                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning fw-bold">Save intake</button>
-                    </div>
-                </form>
-            </div>
+                    <div class="form-text text-light-emphasis">Enter the corrected daily total from 0 to 20,000 kcal.</div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Save intake</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <div class="modal fade" id="calorieTargetModal" tabindex="-1" aria-labelledby="calorieTargetModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-light border-warning">
-                <form method="post" action="{{ url_for('set_calorie_target') }}">
-                    <div class="modal-header border-secondary">
-                        <h2 class="modal-title fs-5 text-warning" id="calorieTargetModalLabel">Daily calorie target</h2>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label for="calorieTargetInput" class="form-label">Target (kcal per day)</label>
-                        <input type="number" class="form-control bg-secondary text-white border-0" id="calorieTargetInput" name="calorie_target" min="1" max="20000" step="1" value="{{ calories_goal|round|int if calories_goal else '' }}" required>
-                        <div class="form-text text-light-emphasis">Enter a whole number from 1 to 20,000 kcal.</div>
-                    </div>
-                    <div class="modal-footer border-secondary">
-                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning fw-bold">Save target</button>
-                    </div>
-                </form>
-            </div>
+<div class="modal fade" id="calorieTargetModal" tabindex="-1" aria-labelledby="calorieTargetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light border-warning">
+            <form method="post" action="{{ url_for('set_calorie_target') }}">
+                <div class="modal-header border-secondary">
+                    <h2 class="modal-title fs-5 text-warning" id="calorieTargetModalLabel">Daily calorie target</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="calorieTargetInput" class="form-label">Target (kcal per day)</label>
+                    <input type="number" class="form-control bg-secondary text-white border-0" id="calorieTargetInput" name="calorie_target" min="1" max="20000" step="1" value="{{ calories_goal|round|int if calories_goal else '' }}" required>
+                    <div class="form-text text-light-emphasis">Enter a whole number from 1 to 20,000 kcal.</div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Save target</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
