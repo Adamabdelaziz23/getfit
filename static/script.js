@@ -50,15 +50,34 @@ if (calcForm) {
 // Rest Timer Logic
 let timerInterval = null;
 
+function setTimerResting(isResting) {
+    const timerDisplayRow = document.getElementById('timerDisplayRow');
+    if (timerDisplayRow) {
+        timerDisplayRow.classList.toggle('is-resting', isResting);
+        const lifter = timerDisplayRow.querySelector('.timer-lifter');
+        if (lifter) {
+            lifter.setAttribute(
+                'aria-label',
+                isResting
+                    ? 'Illustration of an athlete sitting on a bench and drinking water'
+                    : 'Illustration of an athlete bench pressing'
+            );
+        }
+    }
+}
+
 function startTimer(seconds) {
     clearInterval(timerInterval);
     let remainingTime = seconds;
+    setTimerResting(true);
     updateTimerDisplay(remainingTime);
     timerInterval = setInterval(() => {
         remainingTime--;
         updateTimerDisplay(remainingTime);
         if (remainingTime <= 0) {
             clearInterval(timerInterval);
+            timerInterval = null;
+            setTimerResting(false);
             alert("Rest time is up! Get back to work!");
         }
     }, 1000);
@@ -66,6 +85,8 @@ function startTimer(seconds) {
 
 function resetTimer() {
     clearInterval(timerInterval);
+    timerInterval = null;
+    setTimerResting(false);
     const display = document.getElementById("timerDisplay");
     if (display) display.innerText = "01:00";
 }

@@ -182,30 +182,42 @@ def validate_progress_photo(upload):
 
 # AI assistance: GitHub Copilot helped structure the weekly workout programs.
 WEEK_DAYS = (
+    {"key": "sunday", "name": "Sunday"},
     {"key": "monday", "name": "Monday"},
     {"key": "tuesday", "name": "Tuesday"},
     {"key": "wednesday", "name": "Wednesday"},
     {"key": "thursday", "name": "Thursday"},
     {"key": "friday", "name": "Friday"},
     {"key": "saturday", "name": "Saturday"},
-    {"key": "sunday", "name": "Sunday"},
 )
 
 ROUTINE_STYLES = (
     {
         "key": "high_intensity",
         "label": "High Intensity",
-        "guidance": "Compounds: 3-4 sets x 3-6 reps; accessories: 2-3 sets x 6-8 reps. Heavy, controlled loads (about 80-85% of estimated 1RM for compounds).",
+        "summary": "Build strength with heavier weights and fewer reps.",
+        "main_lifts": "3–4 sets × 3–6 reps",
+        "accessories": "2–3 sets × 6–8 reps",
+        "effort": "Choose a challenging weight and keep 1–2 good reps in reserve.",
+        "example": "Example: 4 sets × 5 reps at a challenging weight.",
     },
     {
         "key": "high_volume",
         "label": "High Volume",
-        "guidance": "Compounds: 4 sets x 8-12 reps; accessories: 3-4 sets x 12-15 reps. Lighter, controlled loads (about 55-70% of estimated 1RM).",
+        "summary": "Build muscle with more reps and steady effort.",
+        "main_lifts": "4 sets × 8–12 reps",
+        "accessories": "3–4 sets × 12–15 reps",
+        "effort": "Use a lighter weight and finish with 1–3 good reps in reserve.",
+        "example": "Example: 4 sets × 10 reps with a controlled weight.",
     },
     {
         "key": "average",
         "label": "Average",
-        "guidance": "Compounds: 3 sets x 6-10 reps; accessories: 3 sets x 8-12 reps. Moderate loads (about 65-75% of estimated 1RM).",
+        "summary": "A balanced approach for strength and muscle.",
+        "main_lifts": "3 sets × 6–10 reps",
+        "accessories": "3 sets × 8–12 reps",
+        "effort": "Use a moderate weight and finish with 2–3 good reps in reserve.",
+        "example": "Example: 3 sets × 8 reps with a moderate weight.",
     },
 )
 
@@ -215,13 +227,13 @@ PRESET_ROUTINES = (
         "name": "Push / Pull / Legs",
         "description": "Six lifting days with one recovery day.",
         "days": (
-            {"name": "Monday", "focus": "Push A", "exercises": ("Bench press", "Overhead press", "Incline dumbbell press", "Triceps pushdown")},
-            {"name": "Tuesday", "focus": "Pull A", "exercises": ("Lat pulldown or pull-up", "Barbell row", "Face pull", "Biceps curl")},
-            {"name": "Wednesday", "focus": "Legs A", "exercises": ("Barbell squat", "Romanian deadlift", "Leg press", "Calf raise")},
+            {"name": "Sunday", "focus": "Push A", "exercises": ("Bench press", "Overhead press", "Incline dumbbell press", "Triceps pushdown")},
+            {"name": "Monday", "focus": "Pull A", "exercises": ("Lat pulldown or pull-up", "Barbell row", "Face pull", "Biceps curl")},
+            {"name": "Tuesday", "focus": "Legs A", "exercises": ("Barbell squat", "Romanian deadlift", "Leg press", "Calf raise")},
+            {"name": "Wednesday", "focus": "Recovery", "rest": True, "exercises": ("Rest; optional easy walk and mobility")},
             {"name": "Thursday", "focus": "Push B", "exercises": ("Incline bench press", "Seated shoulder press", "Cable chest fly", "Lateral raise", "Overhead triceps extension")},
             {"name": "Friday", "focus": "Pull B", "exercises": ("Chest-supported row", "Single-arm pulldown", "Reverse fly", "Hammer curl")},
             {"name": "Saturday", "focus": "Legs B", "exercises": ("Deadlift", "Bulgarian split squat", "Hamstring curl", "Seated calf raise")},
-            {"name": "Sunday", "focus": "Recovery", "rest": True, "exercises": ("Rest; optional easy walk and mobility")},
         ),
     },
     {
@@ -229,13 +241,13 @@ PRESET_ROUTINES = (
         "name": "Upper / Lower",
         "description": "Four lifting days, with recovery between sessions.",
         "days": (
+            {"name": "Sunday", "focus": "Rest", "rest": True, "exercises": ("Rest and recover")},
             {"name": "Monday", "focus": "Upper A", "exercises": ("Bench press", "Barbell row", "Overhead press", "Lat pulldown", "Triceps pushdown")},
             {"name": "Tuesday", "focus": "Lower A", "exercises": ("Back squat", "Romanian deadlift", "Walking lunge", "Calf raise")},
             {"name": "Wednesday", "focus": "Recovery", "rest": True, "exercises": ("Rest; optional easy walk and mobility")},
             {"name": "Thursday", "focus": "Upper B", "exercises": ("Incline dumbbell press", "Chest-supported row", "Lateral raise", "Face pull", "Biceps curl")},
             {"name": "Friday", "focus": "Lower B", "exercises": ("Deadlift", "Front squat or goblet squat", "Hip thrust", "Hamstring curl")},
             {"name": "Saturday", "focus": "Optional Conditioning", "rest": True, "exercises": ("Optional easy cardio or mobility")},
-            {"name": "Sunday", "focus": "Rest", "rest": True, "exercises": ("Rest and recover")},
         ),
     },
     {
@@ -243,13 +255,13 @@ PRESET_ROUTINES = (
         "name": "Full Body",
         "description": "Three lifting days, spaced through the week.",
         "days": (
+            {"name": "Sunday", "focus": "Rest", "rest": True, "exercises": ("Rest and recover")},
             {"name": "Monday", "focus": "Full Body A", "exercises": ("Squat", "Bench press", "Seated row", "Romanian deadlift", "Plank")},
             {"name": "Tuesday", "focus": "Recovery", "rest": True, "exercises": ("Rest; optional easy walk and mobility")},
             {"name": "Wednesday", "focus": "Full Body B", "exercises": ("Deadlift", "Overhead press", "Lat pulldown", "Split squat", "Dead bug")},
             {"name": "Thursday", "focus": "Rest", "rest": True, "exercises": ("Rest and recover")},
             {"name": "Friday", "focus": "Full Body C", "exercises": ("Leg press", "Incline dumbbell press", "Chest-supported row", "Hip thrust", "Farmer carry")},
             {"name": "Saturday", "focus": "Optional Conditioning", "rest": True, "exercises": ("Optional easy cardio or mobility")},
-            {"name": "Sunday", "focus": "Rest", "rest": True, "exercises": ("Rest and recover")},
         ),
     },
 )

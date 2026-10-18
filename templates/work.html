@@ -3,7 +3,40 @@
 {% block content %}
 <div class="card bg-dark text-white border-warning p-4 mb-4 text-center">
     <h3 class="text-warning">Rest Timer</h3>
-    <div class="display-3 fw-bold my-2" id="timerDisplay">01:00</div>
+    <div class="timer-display-row my-2" id="timerDisplayRow">
+        <div class="timer-activity">
+        <svg class="timer-lifter" viewBox="0 0 220 120" role="img" aria-label="Illustration of an athlete bench pressing">
+            <g class="timer-lifter-scene" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M29 100h162M54 100V82m112 18V82" stroke-width="4"/>
+                <path d="M68 81h92" stroke-width="8"/>
+                <path d="M57 28v17m-5-17v17m111-17v17m-5-17v17" stroke-width="4"/>
+                <g class="timer-lifter-push">
+                    <g class="timer-bar">
+                        <path d="M56 36h108" stroke-width="4"/>
+                        <path d="M66 29v14m-5-14v14m91-14v14m-5-14v14" stroke-width="5"/>
+                    </g>
+                    <circle cx="65" cy="69" r="8" fill="currentColor" stroke="none"/>
+                    <path d="m76 68 52 8 18-7m-68 0-17 7" stroke-width="7"/>
+                    <path d="m111 74 20 9 17-5m-54 0-19 12 14 4" stroke-width="5"/>
+                    <path class="timer-pressing-arms" d="m100 69 2-27m27 34 2-34" stroke-width="4"/>
+                </g>
+                <g class="timer-lifter-rest">
+                    <circle cx="103" cy="43" r="8" fill="currentColor" stroke="none"/>
+                    <path d="m103 53 2 22m1-15 18-12m-17 13-16 14" stroke-width="6"/>
+                    <path d="m105 74 24 7 17 11m-39-18-17 14-14 7" stroke-width="5"/>
+                    <path d="m123 48 9-9" stroke-width="4"/>
+                    <g class="timer-water-bottle">
+                        <rect x="133" y="27" width="9" height="16" rx="2" fill="#d4af37" stroke-width="2"/>
+                        <path d="M135 24h5v3h-5z" fill="#d4af37" stroke-width="1"/>
+                        <path d="M137.5 31v7" stroke="#282018" stroke-width="1.5"/>
+                    </g>
+                </g>
+            </g>
+        </svg>
+        <p class="timer-hydration" id="timerHydrationMessage">Don't forget to stay hydrated</p>
+        </div>
+        <div class="display-3 fw-bold" id="timerDisplay" role="timer" aria-live="off">01:00</div>
+    </div>
     <div>
         <button class="btn btn-warning me-2" onclick="startTimer(30)">30s</button>
         <button class="btn btn-warning me-2" onclick="startTimer(60)">60s</button>
@@ -28,8 +61,8 @@
 {% macro routine_panel(routine, styles) %}
 <section class="routine-panel mb-3">
     <button class="btn btn-dark border border-warning text-start w-100 p-3 routine-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#routine-panel-{{ routine.id }}" aria-expanded="false" aria-controls="routine-panel-{{ routine.id }}">
-        <span class="d-block text-warning fs-5 fw-bold">{{ routine.name }}</span>
-        {% if routine.description %}<span class="d-block text-light small mt-1">{{ routine.description }}</span>{% endif %}
+        <span class="d-block text-warning fs-5 fw-bold routine-title">{{ routine.name }}</span>
+        {% if routine.description %}<span class="d-block text-light small mt-1 routine-description">{{ routine.description }}</span>{% endif %}
     </button>
     <div class="collapse" id="routine-panel-{{ routine.id }}">
         <div class="table-responsive routine-table-wrap mt-2">
@@ -55,16 +88,34 @@
                                 </section>
                                 {% endfor %}
                             {% else %}
-                                <h6 class="text-warning">{{ day.focus }}</h6>
-                                <ul class="routine-exercises">
-                                    {% for exercise in day.exercises %}<li>{{ exercise }}</li>{% endfor %}
-                                </ul>
-                                {% for style in styles %}
-                                <section class="routine-variant">
-                                    <h6>{{ style.label }}</h6>
-                                    <p class="mb-0">{% if day.rest %}Recovery day; no lifting prescribed.{% else %}{{ style.guidance }}{% endif %}</p>
-                                </section>
-                                {% endfor %}
+                                {% if day.rest %}
+                                    <section class="routine-rest">
+                                        <h6 class="routine-rest-label">Rest &amp; Recover</h6>
+                                        <p class="mb-0">Take time to recharge. Gentle mobility or an easy walk is optional.</p>
+                                    </section>
+                                {% else %}
+                                    <h6 class="text-warning routine-focus">{{ day.focus }}</h6>
+                                    <ul class="routine-exercises">
+                                        {% for exercise in day.exercises %}<li>{{ exercise }}</li>{% endfor %}
+                                    </ul>
+                                    {% for style in styles %}
+                                    <section class="routine-variant">
+                                        <h6>{{ style.label }}</h6>
+                                        <p class="routine-prescription-summary">{{ style.summary }}</p>
+                                        <dl class="routine-prescription">
+                                            <div>
+                                                <dt>Main lifts</dt>
+                                                <dd>{{ style.main_lifts }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Accessories</dt>
+                                                <dd>{{ style.accessories }}</dd>
+                                            </div>
+                                        </dl>
+                                        <p class="routine-prescription-effort mb-0">{{ style.effort }}</p>
+                                    </section>
+                                    {% endfor %}
+                                {% endif %}
                             {% endif %}
                         </td>
                         {% endfor %}
@@ -127,7 +178,7 @@
                                     {% for style in routine_styles %}
                                     <div class="mb-3">
                                         <label for="{{ day.key }}-{{ style.key }}" class="form-label">{{ style.label }}</label>
-                                        <textarea id="{{ day.key }}-{{ style.key }}" name="{{ day.key }}_{{ style.key }}" class="form-control bg-secondary text-white border-0" rows="2" maxlength="1000" placeholder="{{ style.guidance }}"></textarea>
+                                        <textarea id="{{ day.key }}-{{ style.key }}" name="{{ day.key }}_{{ style.key }}" class="form-control bg-secondary text-white border-0" rows="2" maxlength="1000" placeholder="{{ style.example }}"></textarea>
                                     </div>
                                     {% endfor %}
                                 </div>
