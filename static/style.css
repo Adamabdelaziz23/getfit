@@ -50,6 +50,7 @@ h1 {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
     filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3));
     margin-bottom: 1.5rem;
 }
@@ -208,10 +209,28 @@ h1 {
     height: 72px;
 }
 
+.profile-avatar-trigger {
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: block;
+    height: 72px;
+    padding: 0;
+    position: relative;
+    width: 72px;
+}
+
 .profile-avatar,
 .profile-avatar-image {
+    display: block;
     width: 72px;
     height: 72px;
+}
+
+.profile-avatar {
+    border-radius: 50%;
+    overflow: hidden;
 }
 
 .profile-avatar-image {
@@ -220,22 +239,49 @@ h1 {
 
 .profile-picture-edit {
     position: absolute;
-    right: 0;
-    bottom: 0;
-    display: inline-flex;
+    inset: 0;
     align-items: center;
+    background: rgba(10, 8, 15, 0.68);
+    border-radius: 50%;
+    color: #fff;
+    display: flex;
+    font-size: 2rem;
+    font-weight: 400;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 2px solid #fff;
-    font-size: 22px;
     line-height: 1;
+    opacity: 0;
+    transition: opacity 160ms ease;
 }
 
-.profile-picture-edit:focus-visible {
+.profile-avatar-trigger:hover .profile-picture-edit,
+.profile-avatar-trigger:focus-visible .profile-picture-edit {
+    opacity: 1;
+}
+
+.profile-avatar-trigger:focus-visible {
     outline: 3px solid #fff;
-    outline-offset: 2px;
+    outline-offset: 3px;
+}
+
+.profile-picture-edit {
+    pointer-events: none;
+}
+
+@media (hover: none) {
+    .profile-picture-edit {
+        align-items: center;
+        background: #ffc107;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        color: #121212;
+        font-size: 1.25rem;
+        height: 30px;
+        inset: auto 0 0 auto;
+        justify-content: center;
+        opacity: 1;
+        line-height: 1;
+        width: 30px;
+    }
 }
 
 .profile-identity {
@@ -2211,25 +2257,6 @@ h1 {
     }
 }
 
-.quote-card {
-    background: linear-gradient(135deg, #1e1e1e 0%, #292929 100%);
-    border: 1px solid rgba(255, 193, 7, 0.3); /* Soft gold/warning border */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Optional: Add a subtle glowing left-border stripe */
-.quote-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 100%;
-    background: #ffc107;
-}
-
 .card, .feature-box {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -2241,37 +2268,17 @@ h1 {
 
 /* Styling for all feature cards (Workouts, Nutrition, Profile) */
 .feature-card {
-    background: linear-gradient(135deg, #1a1a1a 0%, #222222 100%) !important;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.45) 0%, rgba(34, 34, 34, 0.45) 100%) !important;
+    backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 /* Hover lift effect for the cards */
 .feature-card:hover {
-    transform: translateY(-6px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
     border-color: rgba(255, 193, 7, 0.4) !important; /* Soft gold glow on hover */
-}
-
-/* Styling for the daily quote card */
-.quote-card {
-    background: linear-gradient(135deg, #1e1e1e 0%, #292929 100%);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-}
-
-.quote-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 100%;
-    background: #ffc107;
 }
 
 /* 1. Make all card description text bright, clean, and legible */
@@ -2288,12 +2295,12 @@ h1 {
 .card-title {
     letter-spacing: 0.5px;
     font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 /* 3. Style all card containers to match your modern dark theme */
-/* 1. Make all main cards transparent with frosted glass */
-/* Force all main cards to be transparent */
-.card {
+.card,
+.container .bg-secondary.bg-opacity-10 {
     background: rgba(26, 26, 26, 0.45) !important;
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -2305,9 +2312,12 @@ h1 {
     border-color: rgba(255, 193, 7, 0.4) !important;
 }
 
-/* 3. Quote card styling (fixed the hyphen spacing) */
+.quote-card:hover {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.65) 0%, rgba(41, 41, 41, 0.65) 100%) !important;
+}
+
 .quote-card {
-    background: rgba(30, 30, 30, 0.45) !important;
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.45) 0%, rgba(41, 41, 41, 0.45) 100%) !important;
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 193, 7, 0.3) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -2326,17 +2336,11 @@ h1 {
     background: #ffc107;
 }
 
-h1, .card-title {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-}
 .card .btn {
     transition: all 0.2s ease-in-out;
 }
 
 .card .btn:hover {
-    transform: scale(1.03);
-    background-color: #ffc107;
-    color: #121212;
     box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
 }
 
@@ -2365,15 +2369,6 @@ h1 + p + div .btn {
     border-color: #ffc107;
 }
 
-/* "View Profile" secondary outline button hover effect */
-.btn-outline-warning:hover {
-    transform: translateY(-3px) scale(1.04);
-    background-color: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
-    box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
-    border-color: #ffc107;
-}
-
 .btn-outline-warning:hover,
 .btn-outline-light:hover {
     transform: translateY(-3px) scale(1.04);
@@ -2384,21 +2379,12 @@ h1 + p + div .btn {
 }
 
 /* Crisp text for meal items */
-.card ul li,
+.card ul.list-unstyled li,
 .meal-details li {
     color: #e5e7eb !important;
     font-weight: 300;
 }
 
-/* Apply frosted glass to profile info and stats cards */
-.profile-card,
-.card,
-.container .bg-secondary.bg-opacity-10 {
-    background: rgba(26, 26, 26, 0.45) !important;
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 12px;
-}
 /* Profile avatar styling */
 .profile-img, img[alt*="Profile"] {
     border: 2px solid #ffc107;
@@ -2406,17 +2392,20 @@ h1 + p + div .btn {
     border-radius: 50%;
 }
 /* Style PR input fields to match the dark theme */
-#personal-records select,
-#personal-records input,
-.profile-card input {
+#prForm select,
+#prForm input,
+#editProfileForm input,
+#weightLogInput {
     background: rgba(20, 20, 20, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: #ffffff !important;
     border-radius: 8px;
 }
 
-#personal-records select:focus,
-#personal-records input:focus {
+#prForm select:focus,
+#prForm input:focus,
+#editProfileForm input:focus,
+#weightLogInput:focus {
     border-color: #ffc107 !important;
     box-shadow: 0 0 10px rgba(255, 193, 7, 0.3) !important;
 }

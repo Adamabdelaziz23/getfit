@@ -12,15 +12,17 @@
     <div class="profile-identity">
         <!-- AI assistance: GitHub Copilot helped implement the profile picture picker. -->
         <form id="profilePictureForm" method="post" action="{{ url_for('upload_profile_picture') }}" enctype="multipart/form-data" class="profile-picture-uploader">
-            <div class="profile-avatar">
-            {% if user.profile_picture %}
-                <img src="{{ url_for('static', filename='uploads/' ~ user.profile_picture) }}" alt="Profile picture" class="profile-avatar-image rounded-circle border border-warning">
-            {% else %}
-                <div class="profile-avatar-image rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center fw-bold fs-1">GF</div>
-            {% endif %}
-            </div>
+            <button type="button" id="chooseProfilePicture" class="profile-avatar-trigger" aria-label="Change profile picture">
+                <span class="profile-avatar">
+                    {% if user.profile_picture %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ user.profile_picture) }}" alt="" class="profile-avatar-image rounded-circle border border-warning">
+                    {% else %}
+                        <span class="profile-avatar-image rounded-circle bg-warning text-dark d-inline-flex align-items-center justify-content-center fw-bold fs-1">GF</span>
+                    {% endif %}
+                </span>
+                <span class="profile-picture-edit" aria-hidden="true">+</span>
+            </button>
             <input type="file" id="profilePictureInput" name="profile_picture" class="visually-hidden" accept="image/png,image/jpeg,image/webp" aria-label="Choose a profile picture" required>
-            <button type="button" id="chooseProfilePicture" class="profile-picture-edit btn btn-warning rounded-circle" aria-label="Change profile picture" title="Change profile picture">+</button>
         </form>
         <div class="profile-identity-copy">
             <h3 class="text-warning mb-1" id="userName">{{ user.name or user.username }}</h3>
