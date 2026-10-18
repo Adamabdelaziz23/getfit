@@ -141,3 +141,32 @@ CREATE TABLE photo_memorial (
     after_date TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+-- 14. Food catalog used by nutrition logging
+CREATE TABLE foods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    calories REAL NOT NULL CHECK (calories >= 0),
+    protein REAL NOT NULL CHECK (protein >= 0),
+    carbs REAL NOT NULL CHECK (carbs >= 0),
+    fats REAL NOT NULL CHECK (fats >= 0)
+);
+
+-- 15. Foods recorded by each user
+CREATE TABLE food_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    food_id INTEGER NOT NULL,
+    food_name TEXT NOT NULL,
+    grams REAL NOT NULL CHECK (grams > 0),
+    calories REAL NOT NULL CHECK (calories >= 0),
+    protein REAL NOT NULL CHECK (protein >= 0),
+    carbs REAL NOT NULL CHECK (carbs >= 0),
+    fats REAL NOT NULL CHECK (fats >= 0),
+    logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (food_id) REFERENCES foods(id)
+);
+
+CREATE INDEX food_log_user_logged_at
+    ON food_log (user_id, logged_at);

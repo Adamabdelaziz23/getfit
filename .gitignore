@@ -5,3 +5,9 @@ getfit.db
 .env
 venv/
 .venv/
+static/uploads/
+**/getfit.db
+**/flask_session/
+**/__pycache__/
+*.py[cod]
+final-project/
