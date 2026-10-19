@@ -1,3 +1,7 @@
+#//some of these libraries are not used in the code but are imported for future use
+#//some of these libraries were recomended by the AI to finish a specific
+#//used co pilot auto complete the code to be more efficient
+
 import os
 import json
 import math
@@ -11,7 +15,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 import random
 
-
+#//reading the quotes from the json file and loading them into a list
 with open("quotes.json", "r") as f:
     QUOTES = json.load(f)
 def get_quote():
@@ -19,7 +23,7 @@ def get_quote():
     date_seed = int(today_str.replace("-", ""))
     rng = random.Random(date_seed)
     return rng.choice(QUOTES)
-
+#//defining the database and creating the tables if they do not exist
 
 db = SQL("sqlite:///getfit.db")
 db.execute(
@@ -131,6 +135,7 @@ db.execute(
        )"""
 )
 
+#//defining a function to save weight readings to the database, with optional date parameter
 
 def save_weight_reading(user_id, weight, measured_on=None):
     db.execute(
@@ -144,6 +149,7 @@ def save_weight_reading(user_id, weight, measured_on=None):
         measured_on,
     )
 
+#//defining a function to parse optional number inputs from forms, with validation for minimum and maximum values
 
 def parse_optional_number(form, field, label, minimum, maximum):
     raw_value = form.get(field, "").strip()
@@ -157,6 +163,7 @@ def parse_optional_number(form, field, label, minimum, maximum):
         raise ValueError(f"{label.capitalize()} must be between {minimum:g} and {maximum:g}.")
     return value
 
+#//defining a function to validate uploaded progress photos, checking for file presence, allowed extensions, and valid image headers
 
 def validate_progress_photo(upload):
     if upload is None or not upload.filename:
@@ -179,7 +186,7 @@ def validate_progress_photo(upload):
 
     return f"{uuid4().hex}{extension}"
 
-
+#//saving some constants for week days, routine styles, and preset routines to be used in the application
 
 WEEK_DAYS = (
     {"key": "sunday", "name": "Sunday"},
@@ -266,6 +273,8 @@ PRESET_ROUTINES = (
     },
 )
 
+#defining a decorator to protect routes that require an active user session
+
 def login_required(f):
     """Protect routes that require an active user session."""
     @wraps(f)
@@ -275,6 +284,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+#//the main Flask application configuration, including secret key, session settings, and upload folders
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
@@ -287,6 +297,7 @@ os.makedirs(app.config["PROFILE_UPLOAD_FOLDER"], exist_ok=True)
 os.makedirs(app.config["PROGRESS_UPLOAD_FOLDER"], exist_ok=True)
 Session(app)
 
+#//defining a function to set response headers to prevent caching of pages, ensuring that users always see the most up-to-date information
 
 @app.after_request
 def after_request(response):
@@ -295,7 +306,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-
+#//initializing the database connection and creating the necessary tables if they do not exist
 
 @app.route("/")
 @login_required
@@ -304,6 +315,7 @@ def index():
     today = date.today().strftime("%A, %B %-d, %Y")
     return render_template("index.html", daily_quote=daily_quote, today=today)
 
+#//the dashboard route retrieves and processes various user data, including weight readings, workout logs, nutrition information, and personal records, to display a comprehensive overview of the user's fitness progress on the dashboard page.
 
 @app.route("/dashboard")
 @login_required
@@ -576,6 +588,7 @@ def dashboard():
         recent_workouts=recent_workouts,
     )
 
+#//the dashboard history route retrieves and processes the user's workout and nutrition history, allowing them to view their training sessions and calorie intake over a specified period (either all time or the last week). The data is organized by date and displayed in a user-friendly format on the dashboard history page.
 
 @app.route("/dashboard/history")
 @login_required
@@ -677,6 +690,7 @@ def dashboard_history():
         end_date=today.isoformat() if start_date else None,
     )
 
+#//the personal record history route retrieves and displays the user's personal record improvements for different lifts (bench press, squat, deadlift) in a dated format. The records are fetched from the database and presented on the personal record history page.
 
 @app.route("/dashboard/pr-history")
 @login_required
@@ -696,6 +710,7 @@ def personal_record_history():
         ],
     )
 
+#//the route for the photo memorial feature allows users to upload and view before-and-after photo pairs. Users can upload a "before" photo, which is saved in the database, and later add an "after" photo to the same entry. The route handles both GET and POST requests, displaying existing memorial entries and processing new uploads.
 
 @app.route("/memorial", methods=["GET", "POST"])
 @login_required
@@ -729,6 +744,7 @@ def photo_memorial():
     )
     return render_template("memorial.html", memorial_photos=memorial_photos)
 
+#//the route for adding an "after" photo to an existing memorial entry allows users to upload a photo that represents their progress after a certain period. The route checks if the memorial entry exists and if an "after" photo has already been added, then processes the upload and updates the database accordingly.
 
 @app.route("/memorial/<int:memorial_id>/after", methods=["POST"])
 @login_required
@@ -767,6 +783,7 @@ def add_memorial_after_photo(memorial_id):
     flash("After photo saved.")
     return redirect("/memorial")
 
+#//the route for setting a daily calorie target allows users to input and save their desired calorie intake goal. The route validates the input, ensuring it is a whole number within a reasonable range, and updates the database accordingly.
 
 @app.route("/calorie-target", methods=["POST"])
 @login_required
@@ -804,6 +821,7 @@ def set_calorie_target():
     flash("Daily calorie target saved.")
     return redirect("/dashboard")
 
+#//the route for updating or clearing today's calorie intake allows users to either adjust their current calorie total or reset it to zero. The route validates the input and ensures that macro totals are preserved when making adjustments.
 
 @app.route("/calorie-intake", methods=["POST"])
 @login_required
@@ -850,6 +868,8 @@ def update_calorie_intake():
         carbs = food_totals["carbs"]
         fats = food_totals["fats"]
 
+#//the database operation uses an "upsert" approach to either insert a new record for today's nutrition data or update the existing record if one already exists. This ensures that the user's calorie intake is accurately recorded without losing any previously logged macro information.
+
     db.execute(
         """INSERT INTO daily_nutrition (user_id, log_date, calories, protein, carbs, fats)
            VALUES (?, date('now', 'localtime'), ?, ?, ?, ?)
@@ -868,6 +888,7 @@ def update_calorie_intake():
     flash("Today's calorie intake cleared." if action == "clear" else "Today's calorie intake updated.")
     return redirect("/dashboard")
 
+#//the route for tracking daily progress allows users to log their training sessions, nutrition intake, and body measurements for a specific date. The route handles both GET requests (to display existing entries) and POST requests (to save new entries), ensuring that all input is validated and stored appropriately in the database.
 
 @app.route("/track", methods=["GET", "POST"])
 @login_required
@@ -1086,6 +1107,7 @@ def track_progress():
     flash("Daily progress saved." if not pr_exercise or pr_updated else "Progress saved. The saved personal record is already higher.")
     return redirect(f"/track?date={entry_date}")
 
+#//the nutrition page route serves as a placeholder for future development, providing a dedicated page for users to access nutrition-related features and information.
 
 @app.route("/nutrition")
 @login_required
@@ -1093,6 +1115,7 @@ def nutrition():
     """Nutrition page placeholder."""
     return render_template("nut.html")
 
+#//the workouts page route allows users to view, create, and manage workout routines. Users can add new routines with specific exercises for each day of the week and different training styles. The route handles both displaying existing routines and processing new routine submissions.
 
 @app.route("/workouts", methods=["GET", "POST"])
 @login_required
@@ -1160,6 +1183,8 @@ def workouts():
     )
 
 
+#//the workout logging route allows users to record completed workout sessions. Users can input the name of the workout and any additional notes, which are then saved in the database along with the current date.
+
 @app.route("/workouts/log", methods=["POST"])
 @login_required
 def log_workout():
@@ -1179,6 +1204,7 @@ def log_workout():
     flash("Workout session logged.")
     return redirect("/workouts")
 
+#//the profile route allows users to view and update their personal information, including name, weight, height, and fitness goals. It also displays the user's personal records, nutrition goals, and workout streaks. The route handles both GET requests (to display the profile) and POST requests (to update the profile).
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -1242,6 +1268,7 @@ def profile():
         workout_streak=workout_streak,
     )
 
+#//the weight logging route allows users to record their daily weight. It validates the input to ensure it is a number within a reasonable range and updates the user's profile with the new weight.
 
 @app.route("/profile/weight", methods=["POST"])
 @login_required
@@ -1259,7 +1286,8 @@ def log_weight():
     return redirect("/profile")
 
 
-# AI assistance: GitHub Copilot helped implement profile, PR, and picture-upload routes.
+#//the personal record update route allows users to log their new personal records for specific lifts (bench press, squat, deadlift). It validates the input and updates the database accordingly, also recording the achievement in a history table.
+
 @app.route("/profile/pr", methods=["POST"])
 @login_required
 def update_pr():
@@ -1295,6 +1323,7 @@ def update_pr():
     )
     return redirect("/profile")
 
+#//the profile picture upload route allows users to upload a new profile picture. It validates the uploaded file to ensure it is an image of the correct format and size, saves it to the server, and updates the user's profile with the new picture.
 
 @app.route("/profile/picture", methods=["POST"])
 @login_required
@@ -1336,6 +1365,7 @@ def upload_profile_picture():
     flash("Profile picture updated.")
     return redirect("/profile")
 
+#//the login route handles user authentication. It processes both GET requests (to display the login form) and POST requests (to verify credentials). If the credentials are valid, the user is logged in and redirected to the dashboard; otherwise, an error message is displayed.
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -1356,6 +1386,7 @@ def login():
 
     return render_template("login.html")
 
+#//the registration route allows new users to create an account. It handles both GET requests (to display the registration form) and POST requests (to process the submitted data). The route validates the input, ensuring that passwords match and that required fields are filled, before creating a new user in the database.
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -1373,6 +1404,7 @@ def register():
 
     return render_template("register.html")
 
+#//the logout route clears the user's session, effectively logging them out of the application. After clearing the session, the user is redirected to the login page.
 
 @app.route("/logout")
 def logout():
@@ -1380,6 +1412,14 @@ def logout():
     session.clear()
     return redirect("/login")
 
+#//the main entry point of the application runs the Flask app in debug mode, allowing for live reloading and detailed error messages during development.
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+    #!IMPORTANT: CO pilot and gemini participated in some parts of this code and the css styling. The code is a collaborative effort and may contain contributions from multiple sources.
+    #!AT FIRST it was never be meant to be this big but i had alot of fun and learned a lot along the way.
+    #!Thank you CS50 for making such a thing become possible and for the inspiration to learn more about programming and web development. I hope to continue learning and improving my skills in this field.
+    #!This project is my first real web application and I am proud of what I have accomplished. I hope to continue building more projects and improving my skills in the future.
+    #! THANK YOU FOR EVERYTHING I AM GONNA MISS THESE DAYS.<3
