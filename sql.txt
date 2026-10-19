@@ -1,11 +1,6 @@
--- 1. Enable Foreign Key support in SQLite (recommended for relational integrity)
+-- 1. Enable Foreign Key support in SQLite 
 PRAGMA foreign_keys = ON;
 
--- Existing databases: after merging, run these once if the columns are missing.
--- Do not run them on databases that already have these columns.
--- ALTER TABLE users ADD COLUMN name TEXT;
--- ALTER TABLE users ADD COLUMN fitness_goal TEXT;
--- ALTER TABLE users ADD COLUMN profile_picture TEXT;
 
 -- 2. Create the Users table
 CREATE TABLE users (
